@@ -1,0 +1,4 @@
+- git: 
+    uri: git://github.com/wjwwood/au-proteus.git
+    local-name: au-proteus
+
