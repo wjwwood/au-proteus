@@ -22,6 +22,10 @@ def move(speed, direction):
     """Calls the move srv on ax2550_driver.py"""
     try:
         move = rospy.ServiceProxy('move', Move)
+        if abs(speed) < 0.3:
+            speed = 0
+        if abs(direction) < 0.1:
+            direction = 0
         resp1 = move(speed, direction)
         return resp1.result
     except rospy.ServiceException, e:

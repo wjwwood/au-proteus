@@ -43,10 +43,12 @@ def publishIRSensorData(data):
 
 def handleMoveMsg(msg):
     """Called when a Move message is received"""
+    global proteus
     proteus.move(msg.speed, msg.direction)
     return 0
 
 def main():
+    global proteus
     # ROS init
     rospy.init_node("proteus_driver")
     # Get the command line arguments
@@ -67,7 +69,9 @@ def main():
     # Tell Proteus to start
     proteus.start()
     # Handle Service Requests until shutdown
+    rospy.loginfo("Proteus Driver Ready")
     rospy.spin()
+    rospy.loginfo("Proteus Driver Shutting Down")
     # Tell Proteus to stop cleanly
     proteus.stop()
 

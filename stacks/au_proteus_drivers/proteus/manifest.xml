@@ -9,6 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/proteus</url>
   <depend package="rospy"/>
+  <depend package="joy"/>
 
 </package>
 

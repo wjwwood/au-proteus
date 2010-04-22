@@ -13,3 +13,6 @@
 *.hwm*
 *.cfg
 .svn
+build
+bin
+cpp

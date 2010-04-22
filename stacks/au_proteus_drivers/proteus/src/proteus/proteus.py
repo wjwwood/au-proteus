@@ -44,6 +44,7 @@ class Proteus(object):
         self.serial.port = self.serial_port
         self.serial.baudrate = 57600
         self.serial.open()
+        self.serial.write("$B\r\n")
         
         # Setup some variables
         self.onEncodersData = None
@@ -51,30 +52,34 @@ class Proteus(object):
         self.started = False
         
         # Setup the serial listener
-        self.serial_listener = SerialListener(self.serial)
+        # self.serial_listener = SerialListener(self.serial)
         
     def start(self):
         """Sets the proteus in the start mode, starts polling sensors"""
         self.started = True
         # Start the serial listener
-        if not self.serial_listener.isListening():
-            self.serial_listener.listen()
+        # if not self.serial_listener.isListening():
+            # self.serial_listener.listen()
         # Start any polling threads
         
         # Send start cmd to Proteus
-        self.serial.write(START_CMD)
+        if self.serial.isOpen():
+            self.serial.write(START_CMD)
+        else:
+            print 'Error: Serial port not open'
     
     def stop(self):
         """Sets the proteus into stop mode cleans up, joins threads"""
+        self.move(0,0) # Stop the motors
         self.started = False
         # Stop the serial listener
-        if self.serial_listener.isListening():
-            self.serial_listener.stopListening()
+        # if self.serial_listener.isListening():
+            # self.serial_listener.stopListening()
         # Stop any polling threads
         
         # Send stop cmd to Proteus
-        self.move(0,0) # Stop the motors too...
-        self.serial.write(STOP_CMD)
+        if self.serial.isOpen():
+            self.serial.write(STOP_CMD)
         # Join Threads
         
     
@@ -84,24 +89,24 @@ class Proteus(object):
         if not self.started:
             return
         # Convert the speed into a velocity the Proteus can use
-        if speed < 1.0:
+        if speed > 1.0:
             speed = 1.0
-        elif speed > -1.0:
+        elif speed < -1.0:
             speed = -1.0
-        speed *= 180
+        speed *= 100
         speed = int(speed) & 0x0000ffff
         speed_1 = speed >> 8
         speed_2 = speed & 0x00ff
         proteus_speed = chr(speed_1)+chr(speed_2)
         # Convert the direction into an angle the Proteus can turn to
-        if direction < 1.0:
+        if direction > 1.0:
             direction = 1.0
-        elif direction > -1.0:
+        elif direction < -1.0:
             direction = -1.0
         if direction < 0:
             direction = 355 - direction*20
         else:
-            direction *= 20
+            direction *= 60
         direction = math.radians(direction)
         direction *= 10000
         direction = int(direction)
@@ -116,5 +121,7 @@ class Proteus(object):
         cmd += proteus_direction
         cmd += CMD_STOP
         # Send the command
-        self.serial.write(cmd)
+        if self.serial.isOpen():
+#            print "Sending %s speed and %s direction: %s" % (str(speed), str(direction), cmd.encode("hex"))
+            self.serial.write(cmd)
     
