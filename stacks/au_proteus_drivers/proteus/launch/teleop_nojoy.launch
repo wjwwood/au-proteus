@@ -1,0 +1,4 @@
+<launch>
+    <node name="proteus_driver" pkg="proteus" type="driver" output="screen" />
+    <node name="proteus_teleop" pkg="proteus" type="teleop" output="screen" />
+</launch>
