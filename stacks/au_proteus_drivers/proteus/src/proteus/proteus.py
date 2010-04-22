@@ -25,12 +25,14 @@ from logerror import logError
 CMD_START   = '\x24' # $
 CMD_STOP    = '\x0A' # LF
 
-OP_START    = '\x61' # a
-OP_STOP     = '\x66' # f
-OP_DRIVE    = '\x67' # g
+OP_START     = '\x61' # a
+OP_STOP      = '\x66' # f
+OP_DRIVE     = '\x67' # g
+OP_SAFE_MODE = '\x64' # d
 
-START_CMD   = CMD_START+OP_START+CMD_STOP
-STOP_CMD   = CMD_START+OP_STOP+CMD_STOP
+START_CMD     = CMD_START+OP_START+CMD_STOP
+STOP_CMD      = CMD_START+OP_STOP+CMD_STOP
+SAFE_MODE_CMD = CMD_START+OP_SAFE_MODE+CMD_STOP
 
 ###  Classes  ###
 class Proteus(object):
@@ -65,6 +67,7 @@ class Proteus(object):
         # Send start cmd to Proteus
         if self.serial.isOpen():
             self.serial.write(START_CMD)
+            self.serial.write(SAFE_MODE_CMD)
         else:
             print 'Error: Serial port not open'
     
@@ -104,7 +107,7 @@ class Proteus(object):
         elif direction < -1.0:
             direction = -1.0
         if direction < 0:
-            direction = 355 - direction*20
+            direction = 300 - direction*60
         else:
             direction *= 60
         direction = math.radians(direction)
