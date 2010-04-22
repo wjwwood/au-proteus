@@ -1,0 +1,15 @@
+.*
+.DS_Store
+*.coverage
+*.egg-info
+*.log
+*.swp
+*.pyc
+*.pyo
+*.zip
+*.cc
+*/files/*
+*/tmp/*
+*.hwm*
+*.cfg
+.svn
