@@ -207,17 +207,20 @@ serial_listener.listen()
                         break
                     # We have gotten a delimiter now we need to 
                     # determine if there is a callback for this message
+                    handled = False
                     for comparator, callback in self.handlers:
                         callback_event = None
                         try:
                             if ((inspect.isfunction(comparator) or inspect.ismethod(comparator)) and comparator(message)) or \
                                                                             (isinstance(comparator, bool) and comparator):
-                                callback_event = callback(message)
-                            else:
-                                self.unhandledMessage(message)
+                                skipped = callback(message)
+                                if not skipped:
+                                    handled = True
+                                    break
                         except Exception as err:
                             logError(sys.exc_info(), rospy.logerr, 'Exception handling serial message:')
-            
+                    if not handled:
+                        self.unhandledMessage(message)
                 # Close everything after exiting the loop
                 serial.close()
                 self.latest_unhandled_message = None

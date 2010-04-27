@@ -24,6 +24,7 @@ from proteus.srv import Move as MoveSrv
 import sys
 
 # Peer Libraries
+import proteus.proteus as proteuslib
 from proteus.proteus import Proteus
 
 ###  Variables  ###
@@ -35,11 +36,11 @@ ir_data_topic = None
 
 def publishEncoderData(data):
     """Publishes encoder data"""
-    pass
+    print data
 
 def publishIRSensorData(data):
     """Publishes IR Sensor data"""
-    pass
+    print data
 
 def handleMoveMsg(msg):
     """Called when a Move message is received"""
@@ -61,6 +62,9 @@ def main():
     # Register publishing callbacks
     proteus.onEncodersData = publishEncoderData
     proteus.onIRSensorData = publishIRSensorData
+    # Setup Proteus Logging
+    proteuslib.info = rospy.loginfo
+    proteuslib.logerr = rospy.logerr
     # Setup Services and Topics
     encoder_topic = rospy.Publisher("encoders", Encoder)
     ir_data_topic = rospy.Publisher("ir_data", IRData)
