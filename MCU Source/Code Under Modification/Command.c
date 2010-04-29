@@ -93,14 +93,14 @@ void InterfaceFG(void) {
         }
         break;
       case PROTEUS_OPCODE_LEDS :
-        /*s_8 = (inFromSerial[cmd_read_idx][1] & 0xFF);
+        s_8 = (inFromSerial[cmd_read_idx][1] & 0xFF);
 		switch(s_8)
-			case 1 :
-				LED_BLUE1 = 1; 
-				break;
-			case -1 :
-				LED_BLUE1 = 0; 
-				break;
+			// case 1 :
+				// LED_BLUE1 = 1; 
+				// break;
+			// case -1 :
+				// LED_BLUE1 = 0; 
+				// break;
 			case 2 :
 				LED_BLUE2 = 1;
 				break;
@@ -113,12 +113,12 @@ void InterfaceFG(void) {
 			case -3 :
 				LED_GREEN1 = 0;
 				break;
-			case 9 :
-				LED_GREEN2 = 1;
-				break;
-			case -9 :
-				LED_GREEN2 = 0;
-				break;
+			// case 9 :
+				// LED_GREEN2 = 1;
+				// break;
+			// case -9 :
+				// LED_GREEN2 = 0;
+				// break;
 			case 4 :
 				LED_YELLOW2 = 1;
 				break;
@@ -149,23 +149,23 @@ void InterfaceFG(void) {
 			case -8 : 
 				LED_RED2 = 0;
 				break;
-			case 10 :
-				LED_RED3 = 1;
-				break;
-			case -10 : 
-				LED_RED3 = 0;
-				break;
+			// case 10 :
+				// LED_RED3 = 1;
+				// break;
+			// case -10 : 
+				// LED_RED3 = 0;
+				// break;
 			case 0x0F : // 15 in decimal
-				LED_BLUE1 = 1;
+				//LED_BLUE1 = 1;
 				LED_BLUE2 = 1;
 				LED_GREEN1 = 1;
-				LED_GREEN2 = 1;
+				//LED_GREEN2 = 1;
 				LED_YELLOW2 = 1;
 				LED_ORANGE1 = 1;
 				LED_ORANGE2 = 1;
 				LED_RED1 = 1;
 				LED_RED2 = 1;
-				LED_RED3 = 1;
+				//LED_RED3 = 1;
 				break;
 			case 0x10 : // 16 in decimal
 				LED_BLUE1 = 0;
@@ -180,7 +180,7 @@ void InterfaceFG(void) {
 				LED_RED3 = 0;
 				break;
 			default LED_RED3 = 1; break;
-        break;*/
+        break;
         /*
       case PROTEUS_OPCODE_SONAR_EN : //begin periodic sonar samples  
         
