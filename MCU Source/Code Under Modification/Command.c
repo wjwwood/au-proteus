@@ -93,7 +93,7 @@ void InterfaceFG(void) {
         }
         break;
       case PROTEUS_OPCODE_LEDS :
-        s_8 = (inFromSerial[cmd_read_idx][1] & 0xFF);
+        /*s_8 = (inFromSerial[cmd_read_idx][1] & 0xFF);
 		switch(s_8)
 			case 1 :
 				LED_BLUE1 = 1; 
@@ -180,7 +180,7 @@ void InterfaceFG(void) {
 				LED_RED3 = 0;
 				break;
 			default LED_RED3 = 1; break;
-        break;
+        break;*/
         /*
       case PROTEUS_OPCODE_SONAR_EN : //begin periodic sonar samples  
         
