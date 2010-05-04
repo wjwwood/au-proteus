@@ -70,6 +70,9 @@ void InterfaceFG(void) {
         break;
       case PROTEUS_OPCODE_FULL : 
         mode = PROTEUS_MODE_FULL;
+		if(mode == PROTEUS_MODE_SAFE) {
+          (unsigned char) Scheduler_RemoveEvent(safeId);    
+        }
         break;   
       case PROTEUS_OPCODE_STOP : 
         if(mode == PROTEUS_MODE_SAFE) {
