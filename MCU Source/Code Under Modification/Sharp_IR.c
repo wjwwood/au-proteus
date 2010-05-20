@@ -322,7 +322,41 @@ unsigned short IR_getRL(void){
   return IR_default_tab[raw]; //rear left
 }
 
+unsigned short IR_getE0(void){
+  unsigned char raw;
+  raw = (unsigned char)ADC0_In(ADC_IR_E0);
+  return IR_default_tab[raw]; //extra 0
+}
 
+unsigned short IR_getE1(void){
+  unsigned char raw;
+  raw = (unsigned char)ADC0_In(ADC_IR_E1);
+  return IR_default_tab[raw]; //extra 1
+}
+
+unsigned short IR_getE2(void){
+  unsigned char raw;
+  raw = (unsigned char)ADC0_In(ADC_IR_E2);
+  return IR_default_tab[raw]; //extra 2
+}
+
+unsigned short IR_getE3(void){
+  unsigned char raw;
+  raw = (unsigned char)ADC0_In(ADC_IR_E3);
+  return IR_default_tab[raw]; //extra 3
+}
+
+unsigned short IR_getE4(void){
+  unsigned char raw;
+  raw = (unsigned char)ADC0_In(ADC_IR_E4);
+  return IR_default_tab[raw]; //extra 4
+}
+
+unsigned short IR_getE5(void){
+  unsigned char raw;
+  raw = (unsigned char)ADC0_In(ADC_IR_E5);
+  return IR_default_tab[raw]; //extra 5
+}
    
 
 

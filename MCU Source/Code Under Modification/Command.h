@@ -50,7 +50,7 @@ enum{
 };
 
 #define PROTEUS_ODOMETRY_PACKET_SIZE      5
-#define PROTEUS_IR_PACKET_SIZE           12
+#define PROTEUS_IR_PACKET_SIZE           24  //12 if no extra IR needed/used
 #define PROTEUS_SONAR_PACKET_SIZE        12
 #define PROTEUS_COMPASS_PACKET_SIZE       2
 #define PROTEUS_OPAQUE_PACKET_SIZE        1

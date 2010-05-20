@@ -251,6 +251,30 @@ void InterfaceFG(void) {
             u_16 = IR_getRR(); 
             outToSerial[i++] = u_16 >> 8;
             outToSerial[i++] = u_16 & 0x00FF;
+			
+			u_16 = IR_getE0(); 
+            outToSerial[i++] = u_16 >> 8;
+            outToSerial[i++] = u_16 & 0x00FF;
+          
+            u_16 = IR_getE1(); 
+            outToSerial[i++] = u_16 >> 8;
+            outToSerial[i++] = u_16 & 0x00FF;
+          
+            u_16 = IR_getE2();
+            outToSerial[i++] = u_16 >> 8;
+            outToSerial[i++] = u_16 & 0x00FF;
+             
+            u_16 = IR_getE3();    
+            outToSerial[i++] = u_16 >> 8;
+            outToSerial[i++] = u_16 & 0x00FF;
+           
+            u_16 = IR_getE4(); 
+            outToSerial[i++] = u_16 >> 8;
+            outToSerial[i++] = u_16 & 0x00FF;
+          
+            u_16 = IR_getE5(); 
+            outToSerial[i++] = u_16 >> 8;
+            outToSerial[i++] = u_16 & 0x00FF;
           
             //i should equal PROTEUS_IR_PACKET_SIZE 
 
