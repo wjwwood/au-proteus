@@ -69,10 +69,10 @@ void InterfaceFG(void) {
         safeId = Scheduler_AddEvent_hz(&periodicSafeMotor,1); //at 1hz
         break;
       case PROTEUS_OPCODE_FULL : 
-        mode = PROTEUS_MODE_FULL;
-		if(mode == PROTEUS_MODE_SAFE) {
+        if(mode == PROTEUS_MODE_SAFE) {
           (unsigned char) Scheduler_RemoveEvent(safeId);    
         }
+		mode = PROTEUS_MODE_FULL;
         break;   
       case PROTEUS_OPCODE_STOP : 
         if(mode == PROTEUS_MODE_SAFE) {
