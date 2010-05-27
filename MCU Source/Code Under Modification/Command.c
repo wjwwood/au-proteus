@@ -182,7 +182,7 @@ void InterfaceFG(void) {
 				LED_RED2 = 0;
 				LED_RED3 = 0;
 				break;
-			default LED_RED3 = 1; break;
+			default: LED_RED3 = 1; break;
 			}
         break;
         /*
