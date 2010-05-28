@@ -265,9 +265,9 @@
 /***************/
 /* Stuff added by us */
 /***************/
-#define XBEE_BAUD_RATE  FIFTY_SEVEN_K_BAUD
+#define XBEE_BAUD_RATE  115200
 #define XBEE_RTS_PIN  13
-#define MAX_GCS_PACKET_SIZE  16
+#define GCS_MAX_PACKET_SIZE  16
 #define GPS_BAUD_RATE  FIFTY_SEVEN_K_BAUD
 
 /*

@@ -42,12 +42,12 @@ public class CollisionAvoidance {
 		
 		int payload[] = new int[16];	//4 int32's
 		
-		for (int i = 0; i < waypoint.length; i ++) {
+		for (int i = 0; i < waypoint.length; i++) {
 			ByteBuffer bb = ByteBuffer.allocate(32);
 			bb.order(ByteOrder.LITTLE_ENDIAN);
 			bb.putInt(waypoint[i]);
 			bb.order(ByteOrder.BIG_ENDIAN);
-			for (int j = 0; j < 3; j++) {
+			for (int j = 0; j < 4; j++) {
 				payload[4*i+j] = bb.array()[j];
 			}
 		}
@@ -57,7 +57,7 @@ public class CollisionAvoidance {
 		bb.order(ByteOrder.LITTLE_ENDIAN);
 		bb.putInt(waypoint[0] + waypoint[2]);
 		bb.order(ByteOrder.BIG_ENDIAN);
-		for (int j = 0; j < 3; j++) {
+		for (int j = 0; j < 4; j++) {
 			payload[12+j] = bb.array()[j];
 		}
 		
@@ -83,7 +83,7 @@ public class CollisionAvoidance {
 				
 				// Do magic in here?
 				XBeeAddress64 addr = latest;
-				int[] waypoint = {256, 456789, 312};
+				int[] waypoint = {Integer.MIN_VALUE, Integer.MAX_VALUE, 3};
 				transmit(addr, waypoint);
 			}
 		}
