@@ -13,8 +13,8 @@ int xbee_read (struct GCS_packet_t *buf)
 	//digitalWrite(GPS_RTS_PIN, HIGH);
 
 	// reset Serial to XBee configuration
-	Serial.end();
-	Serial.begin(XBEE_BAUD_RATE);
+//	Serial.end();
+//	Serial.begin(XBEE_BAUD_RATE);
 	Serial.flush();
 
 	// tell XBee to release whatever packet is in its transmit buffer
@@ -29,13 +29,13 @@ int xbee_read (struct GCS_packet_t *buf)
 	digitalWrite(XBEE_RTS_PIN, HIGH);
 
 	// set Serial config back to GPS's needs
-	Serial.end();
-	Serial.begin(GPS_BAUD_RATE);
+//	Serial.end();
+//	Serial.begin(GPS_BAUD_RATE);
+	Serial.flush();
 
 	//digitalWrite(GPS_RTS_PIN, LOW);
 
 	//implement a checksum function to ensure data integrity
 	return	(i == 0 || i >= MAX_GCS_PACKET_SIZE) ? 0 : 
 		(buf->checksum == (buf->next_WP.lat + buf->next_WP.alt)) ? i : -1;
-
 }
