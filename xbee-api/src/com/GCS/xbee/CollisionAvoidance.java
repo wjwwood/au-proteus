@@ -29,11 +29,12 @@ public class CollisionAvoidance {
 
 	public void addData(XBeeAddress64 addr, PlaneData data) {
 		// TODO Auto-generated method stub
-		dataMap.remove(addr);
-		dataMap.put(addr, data);
-		latest = addr;
+		synchronized (this) {
+			dataMap.remove(addr);
+			dataMap.put(addr, data);
+			latest = addr;
+		}
 		avoid.interrupt();
-		System.out.println(data);
 	}
 	
 	// Assume data has 3 fields: latitude, longitude, and altitude

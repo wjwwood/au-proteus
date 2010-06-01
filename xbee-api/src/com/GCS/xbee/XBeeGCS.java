@@ -26,7 +26,7 @@ public class XBeeGCS {
 		ca = new CollisionAvoidance(xbee, log);
 		
 		try {
-			xbee.open("/dev/ttyUSB0", 9600);	
+			xbee.open("/dev/ttyUSB0", 9600);
 			xbee.addPacketListener(new GCSPacketListener());
 			while (true);
 		}
@@ -81,6 +81,9 @@ public class XBeeGCS {
 			pd.currWP = planeDataArray[8];
 			pd.WPdistance = planeDataArray[9];
 			pd.battV = planeDataArray[10];
+			
+			System.out.println("Address: " + ByteUtils.toBase16(response.getRemoteAddress16().getAddress())
+					+ " Data: " + pd);
 			
 			return pd;
 		}
