@@ -356,7 +356,8 @@ void loop()
     switch (medium_loopCounter) {
     case 0:
       medium_loopCounter++;
-      //print_attitude();
+      if (GCS_PROTOCOL != 6)
+        print_attitude();
       break;
     case 1:
       medium_loopCounter++;

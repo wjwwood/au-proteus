@@ -52,6 +52,8 @@ void init_ardupilot()
 	pinMode(12,OUTPUT); // PB4 - MISO		- Blue LED pin  - GPS Lock			- GPS Lock
 	pinMode(13,INPUT); 	//  PB5 - SCK		- Yellow LED pin   				- INPUT Throttle
 
+        pinMode(XBEE_RTS_PIN, OUTPUT);    // MOD: XBee RTS Pin
+        
 	digitalWrite(6,HIGH);
 	
 	// Enable GPS

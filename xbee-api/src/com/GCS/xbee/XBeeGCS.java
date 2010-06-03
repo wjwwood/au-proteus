@@ -19,6 +19,8 @@ public class XBeeGCS {
 	private final static Logger log = Logger.getLogger(XBeeGCS.class);
 	private static XBee xbee;
 	private static CollisionAvoidance ca;
+	static long next;
+	static long prev;
 	
 	public static void main(String[] args) {
 		PropertyConfigurator.configure("log4j.properties");
@@ -46,10 +48,12 @@ public class XBeeGCS {
 		public void processResponse(XBeeResponse response) {
 			if (response.getApiId() == ApiId.ZNET_RX_RESPONSE) {
 				ZNetRxResponse rx = (ZNetRxResponse) response;
+				
 				log.info("Received RX packet, option is " + rx.getOption() + 
 						", sender 64 address is " + ByteUtils.toBase16(rx.getRemoteAddress64().getAddress()) + 
 						", remote 16-bit address is " + ByteUtils.toBase16(rx.getRemoteAddress16().getAddress()) + 
 						", data is " + ByteUtils.toBase16(rx.getData()));
+			
 				ca.addData(rx.getRemoteAddress64(), packetParser(rx));
 			}
 		}
@@ -82,8 +86,13 @@ public class XBeeGCS {
 			pd.WPdistance = planeDataArray[9];
 			pd.battV = planeDataArray[10];
 			
+			next = System.currentTimeMillis();
+			/*
 			System.out.println("Address: " + ByteUtils.toBase16(response.getRemoteAddress16().getAddress())
-					+ " Data: " + pd);
+					+ " Data: " + pd + " Time Elapsed: " + (next-prev));
+					*/
+			System.out.println(pd + "," + (next-prev));
+			prev = next;
 			
 			return pd;
 		}

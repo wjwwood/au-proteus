@@ -65,7 +65,7 @@ void print_control_mode(void)
 
 
 
-/*
+
 void print_position(void)
 {
 			Serial.print("!!!");
@@ -99,48 +99,6 @@ void print_position(void)
 			print_telemetry = false;
 
 }
-*/
-
-// a print position function more amiable for GCS
-void print_position(void)
-{
-		  union{long dword;
-  			byte in_bytes[4]; }; 
- 			
-			dword = current_loc.lat/10;
-			Serial.write(in_bytes,4);
-
-			dword = current_loc.lng/10;
-			Serial.write(in_bytes,4);
-
-			dword = current_loc.alt/100;
-			Serial.write(in_bytes,4);
-
-			dword = next_WP.lat/10;
-			Serial.write(in_bytes,4);
-
-			dword = next_WP.lng/10;
-			Serial.write(in_bytes,4);
-
-			dword = next_WP.alt/100;
-			Serial.write(in_bytes,4);
-
-			dword = ground_speed/100;
-			Serial.write(in_bytes,4);		
-
-			dword = target_bearing/100;
-			Serial.write(in_bytes,4);
-
-			dword = (fakeWP) ? 999 : wp_index;
-			Serial.write(in_bytes,4);//Actually is the waypoint.
-
-			dword = wp_distance;
-			Serial.write(in_bytes,4);
-
-			dword = battery_voltage;
-			Serial.write(in_bytes,4);
-}
-
 
 #if GPS_PROTOCOL == 3
 
@@ -258,6 +216,51 @@ void print_attitude(void)
 }
 #endif
 
+#if GCS_PROTOCOL == 6
+// a print position function more amiable for GCS
+void print_position(void)
+{
+		  union{long dword;
+  			byte in_bytes[4]; }; 
+ 			
+			dword = current_loc.lat/10;
+			Serial.write(in_bytes,4);
+
+			dword = current_loc.lng/10;
+			Serial.write(in_bytes,4);
+
+			dword = current_loc.alt/100;
+			Serial.write(in_bytes,4);
+
+			dword = next_WP.lat/10;
+			Serial.write(in_bytes,4);
+
+			dword = next_WP.lng/10;
+			Serial.write(in_bytes,4);
+
+			dword = next_WP.alt/100;
+			Serial.write(in_bytes,4);
+
+			dword = ground_speed/100;
+			Serial.write(in_bytes,4);		
+
+			dword = target_bearing/100;
+			Serial.write(in_bytes,4);
+
+			dword = (fakeWP) ? 999 : wp_index;
+			Serial.write(in_bytes,4);//Actually is the waypoint.
+
+			dword = wp_distance;
+			Serial.write(in_bytes,4);
+
+			dword = battery_voltage;
+			Serial.write(in_bytes,4);
+}
+
+void print_current_waypoint() { }
+
+void print_control_mode() { }
+#endif
 
 //***********************************************************************************
 //  The following functions are used during startup and are not for telemetry

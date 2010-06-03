@@ -15,8 +15,11 @@ public class PlaneData {
 	public int battV;
 	
 	public String toString() {
+		/*
 		return currLat + " " + currLng + " " + currAlt + " " + nextLat + " " + nextLng + " " +
 		nextAlt + " " + ground_speed + " " + target_bearing + " " + currWP + " " + WPdistance + " " + battV;
+		*/
+		return currLat+"";
 	}
 	
 }
