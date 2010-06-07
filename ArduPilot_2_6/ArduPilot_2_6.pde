@@ -289,13 +289,13 @@ void loop()
 
     // check for throtle failsafe condition
     // ------------------------------------
-    throttle_failsafe();
+		throttle_failsafe();
 
     if (GPS_PROTOCOL == 3) {
       decode_gps();
     } 
 
-    read_analogs();
+		read_analogs();
 
     if (control_mode == FLY_BY_WIRE_A || control_mode == FLY_BY_WIRE_B) {
       // fake Navigation output using sticks
@@ -363,6 +363,7 @@ void loop()
       medium_loopCounter++;
 
       if (GPS_PROTOCOL != 3){
+				Serial.println("Decoding GPS");
         decode_gps();
       }
 
@@ -376,6 +377,7 @@ void loop()
         else{
           digitalWrite(12, LOW);	
         }		
+        Serial.println("Invalid GPS data");
       }
       else{
 
@@ -423,13 +425,14 @@ void loop()
     case 3:
       medium_loopCounter++;
 
+/*
       // XBee reading time
       val = xbee_read(&pkt);
       if (val > 0)
         load_waypoint(&(pkt.next_WP));
       else if (val == -1)
         Serial.println("Checksum fail!");
-
+*/
       break;
       // Reserved
 
@@ -438,7 +441,6 @@ void loop()
       // We commented out the slow loop switch cause the new telemetry code will take some time
 
       //	This is the start of the slow (3 1/3 Hz) loop pieces
-      /*
 			switch (slow_loopCounter) {
        				case 0:
        					slow_loopCounter++;
@@ -456,8 +458,6 @@ void loop()
        					// Reserved
        					break;
        			}
-       	*/		
-      navigate();
       break;
 
     }		
