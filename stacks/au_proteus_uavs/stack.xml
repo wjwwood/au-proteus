@@ -1,0 +1,9 @@
+<stack>
+  <description brief="au_proteus_uavs">au_proteus_uavs</description>
+  <author>Maintained by William Woodall</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/au_proteus_uavs</url>
+  <depend stack="ros" />
+
+</stack>
