@@ -13,10 +13,11 @@ char gps_buffer[BUF_LEN]; //The traditional buffer.
 
 void init_gps(void)
 {
-	Serial.begin(9600);
-	delay(1000);
-	Serial.print(LOCOSYS_BAUD_RATE_38400);
-	Serial.begin(THIRTY_EIGHT_K_BAUD);
+	//Serial.begin(9600);
+	//delay(1000);
+	//Serial.print(LOCOSYS_BAUD_RATE_38400);
+	//Serial.begin(THIRTY_EIGHT_K_BAUD);
+	//Serial.begin(FIFTY_SEVEN_K_BAUD);
 	delay(500);
 	Serial.print(LOCOSYS_REFRESH_RATE_250);
 	delay(500);
@@ -67,6 +68,7 @@ void decode_gps(void)
 
 	while(Serial.available() > 0)
 	{
+//		Serial.println("Serial available");
 		if(unlock == 0)
 		{
 			gps_buffer[0] = Serial.read();//puts a byte in the buffer

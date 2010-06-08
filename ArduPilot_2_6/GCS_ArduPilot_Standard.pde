@@ -217,6 +217,7 @@ void print_attitude(void)
 #endif
 
 #if GCS_PROTOCOL == 6
+/*
 // a print position function more amiable for GCS
 void print_position(void)
 {
@@ -255,6 +256,41 @@ void print_position(void)
 
 			dword = battery_voltage;
 			Serial.write(in_bytes,4);
+}
+*/
+
+void print_position(void)
+{
+			Serial.print("!!!");
+			Serial.print("LAT:");
+			Serial.print(current_loc.lat/10,DEC);
+			Serial.print(",LON:");
+			Serial.print(current_loc.lng/10,DEC); //wp_current_lat
+			Serial.print(",SPD:");
+			Serial.print(ground_speed/100,DEC);		
+			Serial.print(",CRT:");
+			Serial.print(climb_rate,DEC);
+			Serial.print(",ALT:");
+			Serial.print(current_loc.alt/100,DEC);
+			Serial.print(",ALH:");
+			Serial.print(next_WP.alt/100,DEC);
+			Serial.print(",CRS:");
+			Serial.print(ground_course/100,DEC);
+			Serial.print(",BER:");
+			Serial.print(target_bearing/100,DEC);
+			Serial.print(",WPN:");
+			Serial.print(wp_index,DEC);//Actually is the waypoint.
+			Serial.print(",DST:");
+			Serial.print(wp_distance,DEC);
+			Serial.print(",BTV:");
+			Serial.print(battery_voltage,DEC);
+			Serial.print(",RSP:");
+			Serial.print(servo_roll/100,DEC);
+			Serial.print(",TOW:");
+			Serial.print(iTOW);
+			Serial.println(",***");
+			print_telemetry = false;
+
 }
 
 void print_current_waypoint() { }

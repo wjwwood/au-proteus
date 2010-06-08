@@ -28,7 +28,7 @@ public class CollisionAvoidance {
 	}
 
 	public void addData(XBeeAddress64 addr, PlaneData data) {
-		// TODO Auto-generated method stub
+		if (data == null) return;
 		synchronized (this) {
 			dataMap.remove(addr);
 			dataMap.put(addr, data);
