@@ -13,7 +13,7 @@
   <depend package="roscpp"/>
   <depend package="std_msgs"/>
   
-  <rosdep name="rxtxSerial"/>
+  <rosdep name="rxtx"/>
   <rosdep name="log4j"/>
 
 </package>
