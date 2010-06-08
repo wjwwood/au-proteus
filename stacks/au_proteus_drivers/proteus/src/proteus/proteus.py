@@ -31,6 +31,7 @@ OP_STOP         = '\x66' # f
 OP_DRIVE        = '\x67' # g
 OP_SAFE_MODE    = '\x64' # d
 OP_SENSOR       = '\x69' # i
+OP_LEDS			= '\x68' # h
 
 SENSOR_ODOM     = '\x01' # b00000001
 SENSOR_IR       = '\x02' # b00000010
@@ -173,6 +174,22 @@ class Proteus(object):
         else:
             logerr('Error: Serial port not open')
         # Join Threads
+		
+    def led(self, which):
+		if which < 0:
+			temp = abs(int(which))
+			temp = temp - 1
+			temp = ~temp
+			temp = 0x80 | temp
+		else:
+			temp = which		
+		cmd = ""
+		cmd += CMD_START
+		cmd += OP_LEDS
+		cmd += chr(temp & 0xFF)
+		cmd += CMD_STOP
+		if self.serial.isOpen():
+			self.serial.write(cmd)
         
     
     def move(self, speed, direction):
