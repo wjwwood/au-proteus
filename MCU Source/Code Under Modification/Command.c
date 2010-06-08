@@ -1,6 +1,7 @@
 //Command.c
 //Serial interface processing block for the Proteus Robot
 //Written by Paine {n.a.paine@gmail.com}
+//Modified by Justin Paladino {PaladinoJ@gmail.com}
 //Last modified 1/15/10
 
 /* Commands come over the serial port with the following structure

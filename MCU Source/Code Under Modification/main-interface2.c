@@ -1,6 +1,7 @@
 //main-interface2.c
 //Main for Proteus serial interface to Player.
 //Written by Paine {n.a.paine@gmail.com}
+//Modified by Justin Paladino {PaladinoJ@gmail.com}
 
 #include <hidef.h>           /* common defines and macros */
 #include <mc9s12dp512.h>     /* derivative information */
@@ -36,7 +37,7 @@ void main(void) {
   
   LED_BLUE1 = 1;
   
-  SCI_OutString(SCI_X86, "Proteus SCI: Ready...waiting for input"); 
+  SCI_OutString(SCI_X86, "AU-Proteus SCI: Ready...waiting for input"); 
   SCI_OutCRLF(SCI_X86);
   
   for(;;){ //foreground loop
