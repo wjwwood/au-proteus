@@ -1,6 +1,7 @@
 //Command.h
 //Parameter declaration for Proteus SCI protocol
 //Written by Paine {n.a.paine@gmail.com}
+//Modified by Justin Paladino {PaladinoJ@gmail.com}
 
 /* Commands come over the serial port with the following structure
   {begin char} {opcode} {data 1} {data 2} ... {data N} {end char}

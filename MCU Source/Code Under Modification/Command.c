@@ -1,7 +1,8 @@
 //Command.c
 //Serial interface processing block for the Proteus Robot
 //Written by Paine {n.a.paine@gmail.com}
-//Last modified 1/15/10
+//Modified by Justin Paladino {PaladinoJ@gmail.com}
+//Last modified 6/8/10
 
 /* Commands come over the serial port with the following structure
   {begin char} {opcode} {data 1} {data 2} ... {data N} {end char}
@@ -67,12 +68,14 @@ void InterfaceFG(void) {
       case PROTEUS_OPCODE_SAFE :
         mode = PROTEUS_MODE_SAFE;
         safeId = Scheduler_AddEvent_hz(&periodicSafeMotor,1); //at 1hz
+        SCI_OutString(SCI_X86, "\nMotor Watchdog is now ON\n"); 
         break;
       case PROTEUS_OPCODE_FULL : 
         if(mode == PROTEUS_MODE_SAFE) {
           (unsigned char) Scheduler_RemoveEvent(safeId);    
         }
 		mode = PROTEUS_MODE_FULL;
+        SCI_OutString(SCI_X86, "\nWARNING!!! Motor Watchdog is now OFF!\n"); 
         break;   
       case PROTEUS_OPCODE_STOP : 
         if(mode == PROTEUS_MODE_SAFE) {
