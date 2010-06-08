@@ -59,15 +59,22 @@ public class XBeeGCS {
 		}
 		
 		private static PlaneData packetParser(ZNetRxResponse response) {
+			next = System.currentTimeMillis();
+			System.out.println("Time elapsed is " + (next-prev)+"ms, response length is "+response.getData().length);
+			prev = next;	
 			
-			if (response.getData().length != 44) return null;
+			// If response isn't a telemetry packet that we sent
+			if (response.getData().length != 40) {
+				for (int i = 0; i < response.getData().length; i++)
+					System.out.print((char)response.getData()[i]);
+				System.out.println();
+				return null;
+			}
 			
-			int planeDataArray[] = new int[11];
+			int planeDataArray[] = new int[10];
 			byte data[] = new byte[response.getData().length];
-			
 			for (int i = 0; i < data.length; i++)
 				data[i] = (byte) response.getData()[i];
-			
 			for (int i = 0; i < data.length; i += 4) {
 				ByteBuffer bb = ByteBuffer.allocate(32);
 				bb.order(ByteOrder.BIG_ENDIAN);
@@ -87,15 +94,9 @@ public class XBeeGCS {
 			pd.target_bearing = planeDataArray[7];
 			pd.currWP = planeDataArray[8];
 			pd.WPdistance = planeDataArray[9];
-			pd.battV = planeDataArray[10];
 			
-			next = System.currentTimeMillis();
-			/*
 			System.out.println("Address: " + ByteUtils.toBase16(response.getRemoteAddress16().getAddress())
-					+ " Data: " + pd + " Time Elapsed: " + (next-prev));
-					*/
-			System.out.println(pd + "," + (next-prev));
-			prev = next;
+					+ " Data: " + pd);
 			
 			return pd;
 		}

@@ -1,14 +1,10 @@
 // Reads packet from GCS into buffer via XBee
 // Returns size of received packet in bytes
 
-// TODO: set define for XBEE_RTS_PIN
-
 int xbee_read (struct GCS_packet_t *buf)
 {
 	int i = 0;
 	byte *ptr = (byte *) buf;
-
-	//digitalWrite(GPS_RTS_PIN, HIGH);
 
 	// reset Serial to XBee configuration
 	Serial.end();
@@ -33,8 +29,6 @@ int xbee_read (struct GCS_packet_t *buf)
 	Serial.flush();
 	Serial.end();
 	Serial.begin(GPS_BAUD_RATE);
-
-	//digitalWrite(GPS_RTS_PIN, LOW);
 
 	//implement a checksum function to ensure data integrity
 	return	(i == 0) ? 0 : 

@@ -217,48 +217,49 @@ void print_attitude(void)
 #endif
 
 #if GCS_PROTOCOL == 6
-/*
 // a print position function more amiable for GCS
 void print_position(void)
 {
-		  union{long dword;
-  			byte in_bytes[4]; }; 
- 			
-			dword = current_loc.lat/10;
-			Serial.write(in_bytes,4);
+			Serial.end();
+			Serial.begin(XBEE_BAUD_RATE);
+			Serial.flush();
 
-			dword = current_loc.lng/10;
-			Serial.write(in_bytes,4);
+			longUnion.dword = current_loc.lat/10;
+			Serial.write(longUnion.byte,4);
 
-			dword = current_loc.alt/100;
-			Serial.write(in_bytes,4);
+			longUnion.dword = current_loc.lng/10;
+			Serial.write(longUnion.byte,4);
 
-			dword = next_WP.lat/10;
-			Serial.write(in_bytes,4);
+			longUnion.dword = current_loc.alt/100;
+			Serial.write(longUnion.byte,4);
 
-			dword = next_WP.lng/10;
-			Serial.write(in_bytes,4);
+			longUnion.dword = next_WP.lat/10;
+			Serial.write(longUnion.byte,4);
 
-			dword = next_WP.alt/100;
-			Serial.write(in_bytes,4);
+			longUnion.dword = next_WP.lng/10;
+			Serial.write(longUnion.byte,4);
 
-			dword = ground_speed/100;
-			Serial.write(in_bytes,4);		
+			longUnion.dword = next_WP.alt/100;
+			Serial.write(longUnion.byte,4);
 
-			dword = target_bearing/100;
-			Serial.write(in_bytes,4);
+			longUnion.dword = ground_speed/100;
+			Serial.write(longUnion.byte,4);		
 
-			dword = (fakeWP) ? 999 : wp_index;
-			Serial.write(in_bytes,4);//Actually is the waypoint.
+			longUnion.dword = target_bearing/100;
+			Serial.write(longUnion.byte,4);
 
-			dword = wp_distance;
-			Serial.write(in_bytes,4);
+			longUnion.dword = (fakeWP) ? 999 : wp_index;
+			Serial.write(longUnion.byte,4);//Actually is the waypoint.
 
-			dword = battery_voltage;
-			Serial.write(in_bytes,4);
+			longUnion.dword = wp_distance;
+			Serial.write(longUnion.byte,4);
+
+			Serial.end();
+			Serial.begin(GPS_BAUD_RATE);
+			Serial.flush();
 }
-*/
 
+/*
 void print_position(void)
 {
 			Serial.print("!!!");
@@ -292,6 +293,7 @@ void print_position(void)
 			print_telemetry = false;
 
 }
+*/
 
 void print_current_waypoint() { }
 

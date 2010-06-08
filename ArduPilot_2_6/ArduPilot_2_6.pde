@@ -363,7 +363,6 @@ void loop()
       medium_loopCounter++;
 
       if (GPS_PROTOCOL != 3){
-				Serial.println("Decoding GPS");
         decode_gps();
       }
 
@@ -377,7 +376,6 @@ void loop()
         else{
           digitalWrite(12, LOW);	
         }		
-        Serial.println("Invalid GPS data");
       }
       else{
 
@@ -425,14 +423,14 @@ void loop()
     case 3:
       medium_loopCounter++;
 
-/*
       // XBee reading time
+			/*
       val = xbee_read(&pkt);
       if (val > 0)
         load_waypoint(&(pkt.next_WP));
       else if (val == -1)
         Serial.println("Checksum fail!");
-*/
+				*/
       break;
       // Reserved
 

@@ -8,7 +8,7 @@
 //0-2
 #define AIRSPEED_SENSOR 1 		// (boolean) Do you have an airspeed sensor attached? 1= yes, 0 = no.
 //0-3
-#define GPS_PROTOCOL 0			// 0 = NMEA, 1=SIRF, 2=uBlox, 3 = ArduIMU, 5 = Simulated GPS mode (Debug)
+#define GPS_PROTOCOL 1			// 0 = NMEA, 1=SIRF, 2=uBlox, 3 = ArduIMU, 5 = Simulated GPS mode (Debug)
 //0-4 Ground Control Station:
 #define GCS_PROTOCOL 6			// 0 = LabVIEW/HappyKillmore ground station, 1 = special test, 2 = Ardupilot Binary(not implemented), 5 = Jason's GCS, 6 = XBeeGCS
 
@@ -266,9 +266,9 @@
 /* Stuff added by us */
 /***************/
 #define XBEE_BAUD_RATE  115200
-#define XBEE_RTS_PIN  14
+#define XBEE_RTS_PIN  18		// Analog Pin 4
 #define GCS_MAX_PACKET_SIZE  16
-#define GPS_BAUD_RATE  FIFTY_SEVEN_K_BAUD
+#define GPS_BAUD_RATE  57600
 
 /*
 typedef struct {
