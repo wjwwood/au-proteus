@@ -1,7 +1,7 @@
 // filename ******** Sharp_IR.h **************
 // A Sharp IR driver for the Proteus Robot
 // For use with Proteus IR Switch V3+ circuit board
-
+// Modified by Justin Paladino {PaladinoJ@gmail.com}
 /*
  ** Pin connections **
     
