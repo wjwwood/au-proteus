@@ -13,14 +13,6 @@ int xbee_read (struct GCS_packet_t *buf)
 	*/
 	Serial.flush();
 
-	if (count == 0) {
-		count = 1;
-	digitalWrite(14, HIGH);
-	}
-	else {
-		count = 0;
-		digitalWrite(14, LOW);
-	}
 	// tell XBee to release whatever packet is in its transmit buffer
 	digitalWrite(XBEE_RTS_PIN, LOW);
 							// DELAY REFERENCE W/ BAUD RATES

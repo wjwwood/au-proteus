@@ -3,6 +3,8 @@
 #include <math.h>
 #include "defines.h"
 
+#define XBEE
+
 //To use the header file in your library, use brackets:
 //#include <ap_2_6_header.h>
 
@@ -268,7 +270,6 @@ void setup() {
 #endif
 
   init_ardupilot();
-	pinMode(14, OUTPUT);
 }
 
 
@@ -435,12 +436,14 @@ void loop()
        				case 0:
        					slow_loopCounter++;
 
+								#ifdef XBEE
 								// XBee reading time
 								val = xbee_read(&pkt);
 								if (val > 0)
 									load_waypoint(&(pkt.next_WP));
 								else if (val == -1)
 									Serial.println("Checksum fail!");
+								#endif
        					
        					break;
        				case 1:

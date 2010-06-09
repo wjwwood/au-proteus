@@ -220,8 +220,10 @@ void print_attitude(void)
 // a print position function more amiable for GCS
 void print_position(void)
 {
+			/*
 			Serial.end();
 			Serial.begin(XBEE_BAUD_RATE);
+			*/
 			Serial.flush();
 
 			longUnion.dword = current_loc.lat/10;
@@ -254,8 +256,10 @@ void print_position(void)
 			longUnion.dword = wp_distance;
 			Serial.write(longUnion.byte,4);
 
+			/*
 			Serial.end();
 			Serial.begin(GPS_BAUD_RATE);
+			*/
 			Serial.flush();
 }
 
