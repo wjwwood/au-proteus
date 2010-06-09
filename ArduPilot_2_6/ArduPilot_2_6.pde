@@ -246,7 +246,7 @@ struct GCS_packet_t {
 };
 
 struct GCS_packet_t pkt;
-int val;
+int val, count;
 
 // Basic Initialization
 //---------------------
@@ -268,6 +268,7 @@ void setup() {
 #endif
 
   init_ardupilot();
+	pinMode(14, OUTPUT);
 }
 
 
@@ -423,25 +424,23 @@ void loop()
     case 3:
       medium_loopCounter++;
 
-      // XBee reading time
-			/*
-      val = xbee_read(&pkt);
-      if (val > 0)
-        load_waypoint(&(pkt.next_WP));
-      else if (val == -1)
-        Serial.println("Checksum fail!");
-				*/
       break;
       // Reserved
 
     case 4:
       medium_loopCounter=0;
-      // We commented out the slow loop switch cause the new telemetry code will take some time
 
       //	This is the start of the slow (3 1/3 Hz) loop pieces
 			switch (slow_loopCounter) {
        				case 0:
        					slow_loopCounter++;
+
+								// XBee reading time
+								val = xbee_read(&pkt);
+								if (val > 0)
+									load_waypoint(&(pkt.next_WP));
+								else if (val == -1)
+									Serial.println("Checksum fail!");
        					
        					break;
        				case 1:

@@ -6,20 +6,31 @@ int xbee_read (struct GCS_packet_t *buf)
 	int i = 0;
 	byte *ptr = (byte *) buf;
 
+	/*
 	// reset Serial to XBee configuration
 	Serial.end();
 	Serial.begin(XBEE_BAUD_RATE);
+	*/
 	Serial.flush();
 
+	if (count == 0) {
+		count = 1;
+	digitalWrite(14, HIGH);
+	}
+	else {
+		count = 0;
+		digitalWrite(14, LOW);
+	}
 	// tell XBee to release whatever packet is in its transmit buffer
 	digitalWrite(XBEE_RTS_PIN, LOW);
 							// DELAY REFERENCE W/ BAUD RATES
-	delay(0);		// Baud Rate: 9600  delay(20)
-	delay(0);		// Baud Rate: 57600 delay(3)
+	//delay(0);		// Baud Rate: 9600  delay(20)
+	//delay(0);		// Baud Rate: 57600 delay(3)
 					    // Baud Rate: 115200 use two delay(0) for best reliability
+	delay(3);
 
 	// read packet into buffer
-	while (Serial.available() > 0)
+	while (i < GCS_MAX_PACKET_SIZE && Serial.available() > 0)
 		ptr[i++] = (byte)Serial.read();
 
 	// make sure XBee holds onto packets until the function is called again
@@ -27,8 +38,10 @@ int xbee_read (struct GCS_packet_t *buf)
 
 	// set Serial config back to GPS's needs
 	Serial.flush();
+	/*
 	Serial.end();
 	Serial.begin(GPS_BAUD_RATE);
+	*/
 
 	//implement a checksum function to ensure data integrity
 	return	(i == 0) ? 0 : 
