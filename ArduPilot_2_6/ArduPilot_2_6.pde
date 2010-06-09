@@ -248,7 +248,7 @@ struct GCS_packet_t {
 };
 
 struct GCS_packet_t pkt;
-int val, count;
+int val;
 
 // Basic Initialization
 //---------------------
@@ -364,7 +364,7 @@ void loop()
     case 1:
       medium_loopCounter++;
 
-      if (GPS_PROTOCOL != 3){
+      if (GPS_PROTOCOL != 3) {
         decode_gps();
       }
 
