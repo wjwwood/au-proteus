@@ -1,10 +1,10 @@
 #include <avr/io.h>
 #include <avr/eeprom.h>
 #include <math.h>
+#include <SoftwareSerial.h>
 #include "defines.h"
 
 #define XBEE
-
 //To use the header file in your library, use brackets:
 //#include <ap_2_6_header.h>
 
@@ -249,6 +249,7 @@ struct GCS_packet_t {
 
 struct GCS_packet_t pkt;
 int val;
+SoftwareSerial xbeeSerial (XBEE_TX_PIN, XBEE_TX_PIN);
 
 // Basic Initialization
 //---------------------
@@ -436,7 +437,7 @@ void loop()
        				case 0:
        					slow_loopCounter++;
 
-								#ifdef XBEE
+								#ifdef XBEE_READ
 								// XBee reading time
 								val = xbee_read(&pkt);
 								if (val > 0)

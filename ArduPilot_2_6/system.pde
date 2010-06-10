@@ -107,6 +107,9 @@ void init_ardupilot()
 		Serial.println("Startup: AIR");
                 takeoffComplete = 1;
 	}
+
+	xbeeSerial.begin(XBEE_BAUD_RATE);
+	pinMode(XBEE_TX_PIN, INPUT);
 }
 
 byte startup_check(void){

@@ -14,8 +14,8 @@ public class PlaneData {
 	public int WPdistance;
 	
 	public String toString() {
-		return currLat + " " + currLng + " " + currAlt + " " + nextLat + " " + nextLng + " " +
-		nextAlt + " " + ground_speed + " " + target_bearing + " " + currWP + " " + WPdistance;
+		return currLat + " " + currLng + " " + currAlt + " | " + nextLat + " " + nextLng + " " +
+		nextAlt + " | " + ground_speed + " " + target_bearing + " " + currWP + " " + WPdistance;
 	}
 	
 }
