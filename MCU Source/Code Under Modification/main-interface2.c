@@ -19,6 +19,8 @@
 
 #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
 
+unsigned char on;
+
 void main(void) {
   PLL_Init();   // Eclk @ 24MHz
   Timer_Init(); // TCNT @ 333.3ns, TOF @ 21.84ms
@@ -35,7 +37,7 @@ void main(void) {
   
   asm cli  //enable interrupts
   
-  LED_BLUE1 = 1;
+  on = Scheduler_AddEvent_hz(&blinkOnLED,1);
   
   SCI_OutString(SCI_X86, "AU-Proteus SCI: Ready...waiting for input"); 
   SCI_OutCRLF(SCI_X86);
@@ -50,6 +52,11 @@ void main(void) {
   } 
 }
 
-
+void blinkOnLED(){
+    if(LED_BLUE1 == 1)
+        LED_BLUE1 = 0;
+    else
+        LED_BLUE1 = 1;
+}
 
 

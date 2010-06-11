@@ -29,6 +29,9 @@ extern char inFromSerial[2][MAX_CMD_LEN]; //double buffer
 char outToSerial[MAX_PACKET_LEN]; 
 unsigned char mode;
 unsigned char safeId;
+unsigned char started;
+unsigned char errorOp;
+unsigned char errorSub;
 
 unsigned char Active=0; 
 
@@ -43,6 +46,21 @@ void periodicSafeMotor(){
   motorSafe = 0;
 }    
 
+void blinkStartLED(){
+    if(LED_GREEN2 == 1) LED_GREEN2 = 0;
+    else LED_GREEN2 = 1;
+}
+
+void blinkOpErrLED(){
+    if(LED_RED3 == 1) LED_RED3 = 0;
+    else LED_RED3 = 1;
+}
+
+void blinkSubErrLED(){
+    if(LED_RED2 == 1) LED_RED2 = 0;
+    else LED_RED2 = 1;
+}
+
 void InterfaceFG(void) {
   unsigned short u_16;
   short s_16;
@@ -55,7 +73,7 @@ void InterfaceFG(void) {
   if(cmd_new_packet){ //serial packet received from x86
     switch(inFromSerial[cmd_read_idx][0]){ //look at opcode (loosely based on roomba command set)
       case PROTEUS_OPCODE_START :
-        LED_GREEN2 = 1;
+        started = Scheduler_AddEvent_hz(&blinkStartLED,1);
         mode = PROTEUS_MODE_PASSIVE;
         Active = 1;
         break;  
@@ -84,6 +102,7 @@ void InterfaceFG(void) {
         MC_SetVel(0);
         Servo_SetSteeringAngle(0);
         Active = 0;
+        (unsigned char) Scheduler_RemoveEvent(started);
         LED_GREEN2 = 0;
         break;
       case PROTEUS_OPCODE_DRIVE :  
@@ -101,12 +120,12 @@ void InterfaceFG(void) {
       case PROTEUS_OPCODE_LEDS :
         s_8 = (inFromSerial[cmd_read_idx][1] & 0xFF);
 		switch(s_8) {
-			//   case 1 :
-				// LED_BLUE1 = 1; 
-				// break;
-			//   case -1 :
-				// LED_BLUE1 = 0; 
-				// break;
+			  case 1 :
+				LED_BLUE1 = 1; 
+				break;
+			  case -1 :
+				LED_BLUE1 = 0; 
+				break;
 			  case 2 :
 				LED_BLUE2 = 1;
 				break;
@@ -119,59 +138,63 @@ void InterfaceFG(void) {
 			  case -3 :
 				LED_GREEN1 = 0;
 				break;
-			//   case 9 :
-				// LED_GREEN2 = 1;
-				// break;
-			//   case -9 :
-				// LED_GREEN2 = 0;
-				// break;
 			  case 4 :
+				LED_GREEN2 = 1;
+				break;
+			  case -4 :
+				LED_GREEN2 = 0;
+				break;
+			  case 5 :
 				LED_YELLOW2 = 1;
 				break;
-			case -4 :
+              case -5 :
 				LED_YELLOW2 = 0;
 				break;
-			case 5 :
+			  case 6 :
 				LED_ORANGE1 = 1;
 				break;
-			  case -5 :
+			  case -6 :
 				LED_ORANGE1 = 0;
 				break;
-			  case 6 :
+			  case 7 :
 				LED_ORANGE2 = 1;
 				break;
-			  case -6 :
+			  case -7 :
 				LED_ORANGE2 = 0;
 				break;
-			  case 7 :
+			  case 8 :
 				LED_RED1 = 1;
 				break;
-			  case -7 :
+			  case -8 :
 				LED_RED1 = 0;
 				break;
-			  case 8 :
+			  case 9 :
+                (unsigned char) Scheduler_RemoveEvent(errorSub);
 				LED_RED2 = 1;
 				break;
-			  case -8 : 
+			  case -9 : 
+                (unsigned char) Scheduler_RemoveEvent(errorSub);
 				LED_RED2 = 0;
 				break;
-			//   case 10 :
-				// LED_RED3 = 1;
-				// break;
-			//   case -10 : 
-				// LED_RED3 = 0;
-				// break;
+			  case 10 :
+                (unsigned char) Scheduler_RemoveEvent(errorOp);
+				LED_RED3 = 1;
+				break;
+			  case -10 : 
+                (unsigned char) Scheduler_RemoveEvent(errorOp);
+				LED_RED3 = 0;
+				break;
 			  case 0x0F : // 15 in decimal
-				//LED_BLUE1 = 1;
+				LED_BLUE1 = 1;
 				LED_BLUE2 = 1;
 				LED_GREEN1 = 1;
-				//LED_GREEN2 = 1;
+				LED_GREEN2 = 1;
 				LED_YELLOW2 = 1;
 				LED_ORANGE1 = 1;
 				LED_ORANGE2 = 1;
 				LED_RED1 = 1;
 				LED_RED2 = 1;
-				//LED_RED3 = 1;
+				LED_RED3 = 1;
 				break;
 			  case 0x10 : // 16 in decimal
 				LED_BLUE1 = 0;
@@ -185,7 +208,10 @@ void InterfaceFG(void) {
 				LED_RED2 = 0;
 				LED_RED3 = 0;
 				break;
-			default: LED_RED3 = 1; break;
+			  default: 
+                errorSub = Scheduler_AddEvent_hz(&blinkSubErrLED,1);
+                LED_RED2 = 1; 
+                break;
 			}
         break;
         /*
@@ -346,10 +372,16 @@ void InterfaceFG(void) {
             
             break;    */
           
-          default: LED_RED3 = 1; break; //sensor command not recognized
+          default: 
+            errorSub = Scheduler_AddEvent_hz(&blinkSubErrLED,1);
+            LED_RED2 = 1; 
+            break; //sensor command not recognized
         }//end sensor command
         break;    
-      default: LED_RED3 = 1; break; //command not recognized 
+      default: 
+        errorOp = Scheduler_AddEvent_hz(&blinkOpErrLED,1);
+        LED_RED3 = 1; 
+        break; //command not recognized 
     }
     cmd_new_packet = 0; //FG/BG sync
   }//end FG loop
