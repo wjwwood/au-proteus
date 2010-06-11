@@ -109,7 +109,7 @@ void init_ardupilot()
 	}
 
 	xbeeSerial.begin(XBEE_BAUD_RATE);
-	pinMode(XBEE_TX_PIN, INPUT);
+	pin_six_state = PIND & B01000000;
 }
 
 byte startup_check(void){

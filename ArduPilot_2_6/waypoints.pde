@@ -301,6 +301,7 @@ void reset_waypoint_index(void){
 // -------------------------------------
 void load_waypoint(struct Location *wp)
 {
+	Serial.println("Loading arbitrary waypoint");
 	// copy the current WP into the OldWP slot
 	// ---------------------------------------
 	prev_WP = current_loc;

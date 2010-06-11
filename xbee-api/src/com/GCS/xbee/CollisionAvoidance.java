@@ -28,12 +28,15 @@ public class CollisionAvoidance {
 	}
 
 	public void addData(XBeeAddress64 addr, PlaneData data) {
-		if (data == null) return;
+		if (data != null) {
 		synchronized (this) {
 			dataMap.remove(addr);
 			dataMap.put(addr, data);
 			latest = addr;
 		}
+		}
+		
+		latest = addr;
 		avoid.interrupt();
 	}
 	
