@@ -8,6 +8,7 @@
 //#include <ap_2_6_header.h>
 
 #define XBEE_READ
+
 //To use the header file in your local folder, use quotes:
 #include "AP_2_6_header.h"
 //#include "easystar_25.h"
@@ -440,16 +441,12 @@ void loop()
 #ifdef XBEE_READ
 								// XBee reading time
 								val = xbee_read(&pkt);
-								if (val > 0) {
+								if (val > 0)
 									load_waypoint(&(pkt.next_WP));
-									//Serial.println("Arbitrary waypoint loaded.");
-								}
-								/*
-									 else if (val == 0)
-									 Serial.println("Didn't get all data");
-								 */
+#ifdef XBEE_DEBUG
 								else
 									Serial.println("Checksum fail!");
+#endif
 #endif
        					break;
        				case 1:
