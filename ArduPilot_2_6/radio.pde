@@ -58,13 +58,6 @@ void read_radio()
 ISR(PCINT2_vect) {
 	int cnt = TCNT1;
 
-	/* NewSoftSerial mod */
-	uint8_t pin_six_state_curr = PIND & B01000000;
-	if (pin_six_state_curr != pin_six_state) {
-		xbeeSerial.recv();
-		return;
-	}
-
 	if(PIND & B00000100){ 		// ch 1 (pin 2) is high
 		ch1_read = 1;
 		timer1count = cnt;
@@ -86,7 +79,14 @@ ISR(PCINT2_vect) {
 		else
 		  timer2diff = (cnt - timer2count);
 	}
+
+	/* NewSoftSerial mod */
+	uint8_t pin_six_state_curr = PIND & B01000000;
+	if (pin_six_state_curr != pin_six_state) {
+		xbeeSerial.recv();
+	}
 }
+
 ISR(PCINT0_vect)
 {	
 	int cnt = TCNT1;

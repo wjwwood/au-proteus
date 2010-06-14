@@ -89,6 +89,7 @@ public class CollisionAvoidance {
 				XBeeAddress64 addr = latest;
 				int[] waypoint = {32605800, -85487900, 300};
 				//int[] waypoint = {0,0,0};
+				//int[] waypoint = {123,456,789};
 				transmit(addr, waypoint);
 			}
 		}

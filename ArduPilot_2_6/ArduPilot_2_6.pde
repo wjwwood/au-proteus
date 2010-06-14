@@ -427,18 +427,6 @@ void loop()
     case 3:
       medium_loopCounter++;
 
-#ifdef XBEE_READ
-			// XBee reading time
-			val = xbee_read(&pkt);
-			if (val > 0) {
-				load_waypoint(&(pkt.next_WP));
-				Serial.println("Arbitrary waypoint loaded.");
-			}
-			else if (val == 0)
-				Serial.println("Didn't get all data");
-			else
-				Serial.println("Checksum fail!");
-#endif
       break;
       // Reserved
 
@@ -449,8 +437,20 @@ void loop()
 			switch (slow_loopCounter) {
        				case 0:
        					slow_loopCounter++;
-
-       					
+#ifdef XBEE_READ
+								// XBee reading time
+								val = xbee_read(&pkt);
+								if (val > 0) {
+									load_waypoint(&(pkt.next_WP));
+									//Serial.println("Arbitrary waypoint loaded.");
+								}
+								/*
+									 else if (val == 0)
+									 Serial.println("Didn't get all data");
+								 */
+								else
+									Serial.println("Checksum fail!");
+#endif
        					break;
        				case 1:
        					slow_loopCounter++;

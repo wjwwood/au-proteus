@@ -25,7 +25,6 @@ int xbee_read (struct GCS_packet_t *buf)
 	// read packet into buffer
 	while (i < GCS_MAX_PACKET_SIZE && xbeeSerial.available()){
 		ptr[i++] = (byte)xbeeSerial.read();
-		delay(2);
 	}
 
 	// make sure XBee holds onto packets until the function is called again
@@ -48,6 +47,10 @@ int xbee_read (struct GCS_packet_t *buf)
 	}
 	else if (i > 0)
 		Serial.println("Didn't finish getting a packet");
+	else
+		Serial.println("i = 0");
+	
+	xbeeSerial.flush();
 
 	//implement a checksum function to ensure data integrity
 	return 	(i == 0 || i < GCS_MAX_PACKET_SIZE) ? 0 :

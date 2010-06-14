@@ -60,7 +60,7 @@ public class XBeeGCS {
 		
 		private static PlaneData packetParser(ZNetRxResponse response) {
 			next = System.currentTimeMillis();
-			//System.out.println("Time elapsed is " + (next-prev)+"ms, response length is "+response.getData().length);
+			System.out.println("Time elapsed is " + (next-prev)+"ms, response length is "+response.getData().length);
 			prev = next;	
 			
 			// If response isn't a telemetry packet that we sent
