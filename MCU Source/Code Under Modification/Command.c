@@ -2,7 +2,7 @@
 //Serial interface processing block for the Proteus Robot
 //Written by Paine {n.a.paine@gmail.com}
 //Modified by Justin Paladino {PaladinoJ@gmail.com}
-//Last modified 6/8/10
+//Last modified 6/15/10
 
 /* Commands come over the serial port with the following structure
   {begin char} {opcode} {data 1} {data 2} ... {data N} {end char}
@@ -30,8 +30,12 @@ char outToSerial[MAX_PACKET_LEN];
 unsigned char mode;
 unsigned char safeId;
 unsigned char started;
+unsigned char st;
 unsigned char errorOp;
+unsigned char eo;
 unsigned char errorSub;
+unsigned char es;
+extern char ol;
 
 unsigned char Active=0; 
 
@@ -47,18 +51,36 @@ void periodicSafeMotor(){
 }    
 
 void blinkStartLED(){
-    if(LED_GREEN2 == 1) LED_GREEN2 = 0;
-    else LED_GREEN2 = 1;
+    if(st < 0){
+        LED_GREEN2 = 0;
+        st = 0;
+    }
+    else{
+        LED_GREEN2 = 1;
+        st = 1;
+    }
 }
 
 void blinkOpErrLED(){
-    if(LED_RED3 == 1) LED_RED3 = 0;
-    else LED_RED3 = 1;
+    if(eo < 0){
+        LED_RED3 = 0;
+        eo = 0;
+    }
+    else{
+        LED_RED3 = 1;
+        eo = 1;
+    }        
 }
 
 void blinkSubErrLED(){
-    if(LED_RED2 == 1) LED_RED2 = 0;
-    else LED_RED2 = 1;
+    if(es < 0){
+        LED_RED2 = 0;
+        es = 0;
+    }
+    else{
+        LED_RED2 = 1;
+        es = 1
+    }
 }
 
 void InterfaceFG(void) {
@@ -104,6 +126,7 @@ void InterfaceFG(void) {
         Active = 0;
         (unsigned char) Scheduler_RemoveEvent(started);
         LED_GREEN2 = 0;
+        st = 0;
         break;
       case PROTEUS_OPCODE_DRIVE :  
         s_16 = (inFromSerial[cmd_read_idx][1] << 8) | (inFromSerial[cmd_read_idx][2] & 0xFF);
@@ -122,9 +145,11 @@ void InterfaceFG(void) {
 		switch(s_8) {
 			  case 1 :
 				LED_BLUE1 = 1; 
+                ol = 1;
 				break;
 			  case -1 :
-				LED_BLUE1 = 0; 
+				LED_BLUE1 = 0;
+                ol = 0;
 				break;
 			  case 2 :
 				LED_BLUE2 = 1;
@@ -140,9 +165,11 @@ void InterfaceFG(void) {
 				break;
 			  case 4 :
 				LED_GREEN2 = 1;
+                st = 1;
 				break;
 			  case -4 :
 				LED_GREEN2 = 0;
+                st = 0;
 				break;
 			  case 5 :
 				LED_YELLOW2 = 1;
@@ -171,46 +198,59 @@ void InterfaceFG(void) {
 			  case 9 :
                 (unsigned char) Scheduler_RemoveEvent(errorSub);
 				LED_RED2 = 1;
+                es = 1;
 				break;
 			  case -9 : 
                 (unsigned char) Scheduler_RemoveEvent(errorSub);
 				LED_RED2 = 0;
+                es = 0;
 				break;
 			  case 10 :
                 (unsigned char) Scheduler_RemoveEvent(errorOp);
 				LED_RED3 = 1;
+                eo = 1;
 				break;
 			  case -10 : 
                 (unsigned char) Scheduler_RemoveEvent(errorOp);
 				LED_RED3 = 0;
+                eo = 0;
 				break;
 			  case 0x0F : // 15 in decimal
 				LED_BLUE1 = 1;
+                ol = 1;
 				LED_BLUE2 = 1;
 				LED_GREEN1 = 1;
 				LED_GREEN2 = 1;
+                st = 1;
 				LED_YELLOW2 = 1;
 				LED_ORANGE1 = 1;
 				LED_ORANGE2 = 1;
 				LED_RED1 = 1;
 				LED_RED2 = 1;
+                es = 1;
 				LED_RED3 = 1;
+                eo = 1;
 				break;
 			  case 0x10 : // 16 in decimal
 				LED_BLUE1 = 0;
+                ol = 0;
 				LED_BLUE2 = 0;
 				LED_GREEN1 = 0;
 				LED_GREEN2 = 0; 
+                st = 0;
 				LED_YELLOW2 = 0;
 				LED_ORANGE1 = 0;
 				LED_ORANGE2 = 0;
 				LED_RED1 = 0;
 				LED_RED2 = 0;
+                es = 0;
 				LED_RED3 = 0;
+                eo = 0;
 				break;
 			  default: 
                 errorSub = Scheduler_AddEvent_hz(&blinkSubErrLED,1);
                 LED_RED2 = 1; 
+                es = 1;
                 break;
 			}
         break;
@@ -375,12 +415,14 @@ void InterfaceFG(void) {
           default: 
             errorSub = Scheduler_AddEvent_hz(&blinkSubErrLED,1);
             LED_RED2 = 1; 
+            es = 1;
             break; //sensor command not recognized
         }//end sensor command
         break;    
       default: 
         errorOp = Scheduler_AddEvent_hz(&blinkOpErrLED,1);
         LED_RED3 = 1; 
+        eo = 1;
         break; //command not recognized 
     }
     cmd_new_packet = 0; //FG/BG sync
