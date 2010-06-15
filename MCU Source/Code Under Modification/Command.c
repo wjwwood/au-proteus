@@ -51,7 +51,7 @@ void periodicSafeMotor(){
 }    
 
 void blinkStartLED(){
-    if(st < 0){
+    if(st > 0){
         LED_GREEN2 = 0;
         st = 0;
     }
@@ -62,7 +62,7 @@ void blinkStartLED(){
 }
 
 void blinkOpErrLED(){
-    if(eo < 0){
+    if(eo > 0){
         LED_RED3 = 0;
         eo = 0;
     }
@@ -73,13 +73,13 @@ void blinkOpErrLED(){
 }
 
 void blinkSubErrLED(){
-    if(es < 0){
+    if(es > 0){
         LED_RED2 = 0;
         es = 0;
     }
     else{
         LED_RED2 = 1;
-        es = 1
+        es = 1;
     }
 }
 
@@ -321,7 +321,9 @@ void InterfaceFG(void) {
             outToSerial[i++] = u_16 >> 8;
             outToSerial[i++] = u_16 & 0x00FF;
 			
-			u_16 = IR_getE0(); 
+			/*  UNCOMMENT FOR EXTRA IR
+                Also requires change to Command.h
+            u_16 = IR_getE0(); 
             outToSerial[i++] = u_16 >> 8;
             outToSerial[i++] = u_16 & 0x00FF;
           
@@ -344,6 +346,15 @@ void InterfaceFG(void) {
             u_16 = IR_getE5(); 
             outToSerial[i++] = u_16 >> 8;
             outToSerial[i++] = u_16 & 0x00FF;
+            
+            u_16 = IR_getE6(); 
+            outToSerial[i++] = u_16 >> 8;
+            outToSerial[i++] = u_16 & 0x00FF;
+          
+            u_16 = IR_getE7(); 
+            outToSerial[i++] = u_16 >> 8;
+            outToSerial[i++] = u_16 & 0x00FF;
+            */
           
             //i should equal PROTEUS_IR_PACKET_SIZE 
 
@@ -411,6 +422,17 @@ void InterfaceFG(void) {
             }
             
             break;    */
+          
+          case PROTEUS_SERVO_PACKET:
+            u_16 = readServoPot(); 
+            outToSerial[i++] = u_16 >> 8;
+            outToSerial[i++] = u_16 & 0x00FF;
+            
+            for(i=0; i<PROTEUS_SERVO_PACKET_SIZE; i++){
+              SCI_OutChar(SCI_X86, outToSerial[i]);  
+            }
+            
+            break;
           
           default: 
             errorSub = Scheduler_AddEvent_hz(&blinkSubErrLED,1);

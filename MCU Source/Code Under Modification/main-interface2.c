@@ -21,6 +21,7 @@
 
 unsigned char on;
 unsigned char ol;
+void blinkOnLED(void);
 
 void main(void) {
   PLL_Init();   // Eclk @ 24MHz
@@ -33,7 +34,8 @@ void main(void) {
   Servo_Init(); 
   Tach_Init();  //tachometer init
   MC_Init(); //motor control init
-  ADC0_Init();  //IR sensors
+  ADC0_Init();  //IR sensors, Servo Potentiometer
+  ADC1_Init();  //Extra IR sensors
   Compass_Init();
   
   asm cli  //enable interrupts
@@ -54,7 +56,7 @@ void main(void) {
 }
 
 void blinkOnLED(){
-    if(ol < 0){
+    if(ol > 0){
         LED_BLUE1 = 0;
         ol = 0;
     }

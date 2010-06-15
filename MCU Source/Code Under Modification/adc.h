@@ -42,5 +42,6 @@ void ADC0_Init(void);
 #define _ADC_H 1
 
 unsigned short ADC0_In(unsigned short chan);
+unsigned short ADC1_In(unsigned short chan);
 
 #endif //_ADC_H
