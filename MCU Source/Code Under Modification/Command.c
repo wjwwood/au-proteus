@@ -95,7 +95,8 @@ void InterfaceFG(void) {
   if(cmd_new_packet){ //serial packet received from x86
     switch(inFromSerial[cmd_read_idx][0]){ //look at opcode (loosely based on roomba command set)
       case PROTEUS_OPCODE_START :
-        started = Scheduler_AddEvent_hz(&blinkStartLED,1);
+        if(Active = 0)
+            started = Scheduler_AddEvent_hz(&blinkStartLED,1);
         mode = PROTEUS_MODE_PASSIVE;
         Active = 1;
         break;  
@@ -108,14 +109,14 @@ void InterfaceFG(void) {
       case PROTEUS_OPCODE_SAFE :
         mode = PROTEUS_MODE_SAFE;
         safeId = Scheduler_AddEvent_hz(&periodicSafeMotor,1); //at 1hz
-        SCI_OutString(SCI_X86, "\nMotor Watchdog is now ON\n"); 
+        SCI_OutString(SCI_X86, "Motor Watchdog is now ON"); 
         break;
       case PROTEUS_OPCODE_FULL : 
         if(mode == PROTEUS_MODE_SAFE) {
           (unsigned char) Scheduler_RemoveEvent(safeId);    
         }
 		mode = PROTEUS_MODE_FULL;
-        SCI_OutString(SCI_X86, "\nWARNING!!! Motor Watchdog is now OFF!\n"); 
+        SCI_OutString(SCI_X86, "WARNING!!! Motor Watchdog is now OFF!"); 
         break;   
       case PROTEUS_OPCODE_STOP : 
         if(mode == PROTEUS_MODE_SAFE) {
@@ -248,6 +249,7 @@ void InterfaceFG(void) {
                 eo = 0;
 				break;
 			  default: 
+                (unsigned char) Scheduler_RemoveEvent(errorSub);
                 errorSub = Scheduler_AddEvent_hz(&blinkSubErrLED,1);
                 LED_RED2 = 1; 
                 es = 1;
@@ -435,6 +437,7 @@ void InterfaceFG(void) {
             break;
           
           default: 
+            (unsigned char) Scheduler_RemoveEvent(errorSub);
             errorSub = Scheduler_AddEvent_hz(&blinkSubErrLED,1);
             LED_RED2 = 1; 
             es = 1;
@@ -442,6 +445,7 @@ void InterfaceFG(void) {
         }//end sensor command
         break;    
       default: 
+        (unsigned char) Scheduler_RemoveEvent(errorOp);
         errorOp = Scheduler_AddEvent_hz(&blinkOpErrLED,1);
         LED_RED3 = 1; 
         eo = 1;
