@@ -79,12 +79,6 @@ ISR(PCINT2_vect) {
 		else
 		  timer2diff = (cnt - timer2count);
 	}
-
-	/* NewSoftSerial mod */
-	uint8_t pin_six_state_curr = PIND & B01000000;
-	if (pin_six_state_curr != pin_six_state) {
-		xbeeSerial.recv();
-	}
 }
 
 ISR(PCINT0_vect)

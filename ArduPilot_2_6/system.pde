@@ -52,8 +52,6 @@ void init_ardupilot()
 	pinMode(12,OUTPUT); // PB4 - MISO		- Blue LED pin  - GPS Lock			- GPS Lock
 	pinMode(13,INPUT); 	//  PB5 - SCK		- Yellow LED pin   				- INPUT Throttle
 
-        pinMode(XBEE_RTS_PIN, OUTPUT);    // MOD: XBee RTS Pin
-        
 	digitalWrite(6,HIGH);
 	
 	// Enable GPS
@@ -100,6 +98,12 @@ void init_ardupilot()
 	// -----------------------
 	//demo_servos();
 
+	// Initialize XBee TX setup
+	// ------------------------
+#ifdef XBEE_READ
+	init_xbee();
+#endif
+
 	if(startup_check()){
 		Serial.println("Startup: Ground");
 		startup_ground();
@@ -108,8 +112,6 @@ void init_ardupilot()
                 takeoffComplete = 1;
 	}
 
-	xbeeSerial.begin(XBEE_BAUD_RATE);
-	pin_six_state = PIND & B01000000;
 }
 
 byte startup_check(void){

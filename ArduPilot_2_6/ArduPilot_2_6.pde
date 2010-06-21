@@ -7,8 +7,6 @@
 //To use the header file in your library, use brackets:
 //#include <ap_2_6_header.h>
 
-#define XBEE_READ
-
 //To use the header file in your local folder, use quotes:
 #include "AP_2_6_header.h"
 //#include "easystar_25.h"
@@ -251,7 +249,6 @@ struct GCS_packet_t {
 struct GCS_packet_t pkt;
 int val;
 NewSoftSerial xbeeSerial (XBEE_TX_PIN, XBEE_TX_PIN);
-uint8_t pin_six_state;
 
 // Basic Initialization
 //---------------------
@@ -473,11 +470,3 @@ void loop()
     mainLoop_event();
   }
 }
-
-
-
-
-
-
-
-

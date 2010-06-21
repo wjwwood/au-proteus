@@ -266,10 +266,11 @@
 /* Stuff added by us */
 /***************/
 #define XBEE_BAUD_RATE  57600
-#define XBEE_RTS_PIN  18		// Analog Pin 4
-#define XBEE_TX_PIN 6
+#define XBEE_TX_PIN 19
 #define GCS_MAX_PACKET_SIZE  16
 #define GPS_BAUD_RATE  57600
+
+#define XBEE_READ
 
 /*
 typedef struct {
