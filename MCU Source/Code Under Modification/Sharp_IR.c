@@ -11,11 +11,19 @@
     PAD03 -> Rear Left Sensor
     PAD04 -> Rear Center Sensor
     PAD05 -> Rear Right Sensor
+    PAD08 -> Extra IR Sensor
+    PAD09 -> Extra IR Sensor
+    PAD10 -> Extra IR Sensor
+    PAD11 -> Extra IR Sensor
+    PAD12 -> Extra IR Sensor
+    PAD13 -> Extra IR Sensor
+    PAD14 -> Extra IR Sensor
+    PAD15 -> Extra IR Sensor
     
-
  ** Feature Usage **
    
    6 pins on ADC0
+   8 pins on ADC1
 */
 
 #include <mc9s12dp512.h>     /* derivative information */
@@ -324,39 +332,50 @@ unsigned short IR_getRL(void){
 
 unsigned short IR_getE0(void){
   unsigned char raw;
-  raw = (unsigned char)ADC0_In(ADC_IR_E0);
+  raw = (unsigned char)ADC1_In(ADC_IR_E0);
   return IR_default_tab[raw]; //extra 0
 }
 
 unsigned short IR_getE1(void){
   unsigned char raw;
-  raw = (unsigned char)ADC0_In(ADC_IR_E1);
+  raw = (unsigned char)ADC1_In(ADC_IR_E1);
   return IR_default_tab[raw]; //extra 1
 }
 
 unsigned short IR_getE2(void){
   unsigned char raw;
-  raw = (unsigned char)ADC0_In(ADC_IR_E2);
+  raw = (unsigned char)ADC1_In(ADC_IR_E2);
   return IR_default_tab[raw]; //extra 2
 }
 
 unsigned short IR_getE3(void){
   unsigned char raw;
-  raw = (unsigned char)ADC0_In(ADC_IR_E3);
+  raw = (unsigned char)ADC1_In(ADC_IR_E3);
   return IR_default_tab[raw]; //extra 3
 }
 
 unsigned short IR_getE4(void){
   unsigned char raw;
-  raw = (unsigned char)ADC0_In(ADC_IR_E4);
+  raw = (unsigned char)ADC1_In(ADC_IR_E4);
   return IR_default_tab[raw]; //extra 4
 }
 
 unsigned short IR_getE5(void){
   unsigned char raw;
-  raw = (unsigned char)ADC0_In(ADC_IR_E5);
+  raw = (unsigned char)ADC1_In(ADC_IR_E5);
   return IR_default_tab[raw]; //extra 5
 }
    
+unsigned short IR_getE6(void){
+  unsigned char raw;
+  raw = (unsigned char)ADC1_In(ADC_IR_E6);
+  return IR_default_tab[raw]; //extra 4
+}
+
+unsigned short IR_getE7(void){
+  unsigned char raw;
+  raw = (unsigned char)ADC1_In(ADC_IR_E7);
+  return IR_default_tab[raw]; //extra 5
+}
 
 

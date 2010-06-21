@@ -20,6 +20,8 @@
 #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
 
 unsigned char on;
+unsigned char ol;
+void blinkOnLED(void);
 
 void main(void) {
   PLL_Init();   // Eclk @ 24MHz
@@ -32,7 +34,8 @@ void main(void) {
   Servo_Init(); 
   Tach_Init();  //tachometer init
   MC_Init(); //motor control init
-  ADC0_Init();  //IR sensors
+  ADC0_Init();  //IR sensors, Servo Potentiometer
+  ADC1_Init();  //Extra IR sensors
   Compass_Init();
   
   asm cli  //enable interrupts
@@ -53,10 +56,14 @@ void main(void) {
 }
 
 void blinkOnLED(){
-    if(LED_BLUE1 == 1)
+    if(ol > 0){
         LED_BLUE1 = 0;
-    else
+        ol = 0;
+    }
+    else {
         LED_BLUE1 = 1;
+        ol = 1;
+    }
 }
 
 

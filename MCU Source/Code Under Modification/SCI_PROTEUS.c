@@ -30,7 +30,8 @@
 // increased large enough to prevent full errors
 //   the FIFO is full when it has FifoSize-1 bytes 
 
-   
+extern char es;
+extern char eo;   
 char static volatile *TxPutPt[SCIPORTS];    /* Pointer of where to put next */
 char static volatile *TxGetPt[SCIPORTS];    /* Pointer of where to get next */
                   /* FIFO is empty if PutPt=GetPt */
@@ -361,6 +362,7 @@ interrupt 20 void SCI0Handler(void){ char data;
         if(data == PROTEUS_END) {
           if(cmd_new_packet) {
             LED_RED3 = 1; //error, not finished processing previous packet  
+            eo = 1;
           }
           cmdState = INACTIVE; //end of command
           cmd_buf_idx = 0;
@@ -371,6 +373,7 @@ interrupt 20 void SCI0Handler(void){ char data;
         } 
         else if(cmd_buf_idx > MAX_CMD_LEN){
           LED_RED2 = 1; //error, bad packet
+          es = 1;
           cmdState = INACTIVE;
           cmd_buf_idx = 0;  
         } 

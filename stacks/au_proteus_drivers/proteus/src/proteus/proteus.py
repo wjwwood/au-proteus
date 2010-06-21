@@ -36,6 +36,7 @@ OP_FULL_MODE    = '\x65' # e
 
 SENSOR_ODOM     = '\x01' # b00000001
 SENSOR_IR       = '\x02' # b00000010
+SENSOR_SERVO    = '\x06' # b00000110
 
 START_CMD     = CMD_START+OP_START+CMD_STOP
 STOP_CMD      = CMD_START+OP_STOP+CMD_STOP
@@ -70,6 +71,9 @@ class Proteus(object):
         
         self.onOdomData = None
         self.odom_timer = None
+        
+        self.servo_timer = None
+        self.onServoData = None
         
         self.onIRSensorData = None
         self.ir_timer = None
@@ -199,21 +203,37 @@ class Proteus(object):
         # Join Threads
 		
     def led(self, which):
-		if which < 0:
-			temp = abs(int(which))
-			temp = temp - 1
-			temp = ~temp
-			temp = 0x80 | temp
-		else:
-			temp = which		
-		cmd = ""
-		cmd += CMD_START
-		cmd += OP_LEDS
-		cmd += chr(temp & 0xFF)
-		cmd += CMD_STOP
-		if self.serial.isOpen():
-			self.serial.write(cmd)
+        if which < 0:
+            temp = abs(int(which))
+            temp = temp - 1
+            temp = ~temp
+            temp = 0x80 | temp
+        else:
+            temp = which		
+        cmd = ""
+        cmd += CMD_START
+        cmd += OP_LEDS
+        cmd += chr(temp & 0xFF)
+        cmd += CMD_STOP
+        if self.serial.isOpen():
+            self.serial.write(cmd)
+        else:
+            logerr('Error: Serial port not open')
         
+    def pollServo(self):
+        cmd = ""
+        cmd += CMD_START
+        cmd += OP_SENSOR
+        cmd += SENSOR_SERVO
+        cmd += CMD_STOP
+        if self.serial.isOpen():
+            self.serial.write(cmd)
+        else:
+            logerr('Error: Serial port not open')
+        data = self.serial.read(2)
+        data = data.encode("HEX")
+        servo_data = int(data[0:4], 16)
+        print servo_data
     
     def move(self, speed, direction):
         """Translates speed and direction into commands the proteus understands and sends them"""

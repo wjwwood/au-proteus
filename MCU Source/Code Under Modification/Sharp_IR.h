@@ -11,11 +11,19 @@
     PAD03 -> Rear Left Sensor
     PAD04 -> Rear Center Sensor
     PAD05 -> Rear Right Sensor
-    
+    PAD08 -> Extra IR Sensor
+    PAD09 -> Extra IR Sensor
+    PAD10 -> Extra IR Sensor
+    PAD11 -> Extra IR Sensor
+    PAD12 -> Extra IR Sensor
+    PAD13 -> Extra IR Sensor
+    PAD14 -> Extra IR Sensor
+    PAD15 -> Extra IR Sensor
 
- ** Feature Usage **
+    ** Feature Usage **
    
    6 pins on ADC0
+   8 pins on ADC1
 */
 
 #ifndef _Sharp_IR_H
@@ -27,12 +35,15 @@
 #define ADC_IR_RL 0x80
 #define ADC_IR_RC 0x81
 #define ADC_IR_RR 0x82 
-#define ADC_IR_E0 0x120
-#define ADC_IR_E1 0x121
-#define ADC_IR_E2 0x122
-#define ADC_IR_E3 0x123
-#define ADC_IR_E4 0x124
-#define ADC_IR_E5 0x125
+
+#define ADC_IR_E0 0x80
+#define ADC_IR_E1 0x81
+#define ADC_IR_E2 0x82
+#define ADC_IR_E3 0x83
+#define ADC_IR_E4 0x84
+#define ADC_IR_E5 0x85
+#define ADC_IR_E6 0x86
+#define ADC_IR_E7 0x87
 
 //all return units of mm
 unsigned short IR_getFL(void); //front left
@@ -47,5 +58,7 @@ unsigned short IR_getE2(void); //extra 2
 unsigned short IR_getE3(void); //extra 3
 unsigned short IR_getE4(void); //extra 4
 unsigned short IR_getE5(void); //extra 5
+unsigned short IR_getE6(void); //extra 6
+unsigned short IR_getE7(void); //extra 7
 
 #endif /* _Sharp_IR_H */
