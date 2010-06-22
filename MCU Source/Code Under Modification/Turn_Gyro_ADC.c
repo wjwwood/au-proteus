@@ -1,11 +1,11 @@
-// filename ******** Servo_Pot_ADC.c **************
-// A Servo Potentiometer driver for the Proteus Robot
-// For use with a Potentiometer that corresponds to the steering servo
+// filename ******** Turn_Gyro_ADC.c **************
+// A Gyroscope driver for the Proteus Robot
+// For use with a Gyro that corresponds to Turns
 // Written by Justin Paladino {PaladinoJ@gmail.com}
 /*
  ** Pin connections **
     
-    PAD07 -> Servo Potentiometer 
+    PAD06 -> Gyroscope 
 
  ** Feature Usage **
    
@@ -14,9 +14,9 @@
 
 #include <mc9s12dp512.h>     /* derivative information */
 #include "adc.h"
-#include "Servo_Pot_ADC.h"
+#include "Turn_Gyro_ADC.h"
 
-unsigned short pot_default_tab[256] = {
+unsigned short gyro_default_tab[256] = {
 0	 , //  0
 1	 , //  1
 2	 , //  2
@@ -275,8 +275,8 @@ unsigned short pot_default_tab[256] = {
 255	 , //  255
  };
 
-unsigned short readServoPot(void){
+unsigned short readTurnGyro(void){
   unsigned char raw;
-  raw = (unsigned char)ADC0_In(ADC_SERVO_POT);
-  return pot_default_tab[raw]; 
+  raw = (unsigned char)ADC0_In(ADC_TURN_GYRO);
+  return gyro_default_tab[raw]; 
 }
