@@ -3,17 +3,17 @@ void init_xbee()
 {
   pinMode(XBEE_TX_PIN, INPUT); 
 	// Assuming XBee TX pin is analog 4
-	PCMSK1 = _BV(PCINT12);
-	PCICR |= _BV(PCIE1);
+	//PCMSK1 = _BV(PCINT12);
+	//PCICR |= _BV(PCIE1);
 	xbeeSerial.begin(XBEE_BAUD_RATE);
 }
-
+/*
 // XBee TX Interrupt Handler
 ISR(PCINT1_vect)
 {
 	xbeeSerial.recv();
 }
-
+*/
 // Reads packet from GCS into buffer via XBee
 // Returns size of received packet in bytes
 
