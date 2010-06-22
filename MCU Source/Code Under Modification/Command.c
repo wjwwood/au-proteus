@@ -29,7 +29,7 @@ extern char inFromSerial[2][MAX_CMD_LEN]; //double buffer
 char outToSerial[MAX_PACKET_LEN]; 
 unsigned char mode;
 unsigned char safeId;
-unsigned char started;
+unsigned char started = 0;
 unsigned char st;
 unsigned char errorOp;
 unsigned char eo;
@@ -37,7 +37,6 @@ unsigned char errorSub;
 unsigned char es;
 extern char ol;
 
-unsigned char Active=0; 
 
 //In safe mode this function is called periodically to see if the motors have been
 //recently set.  If not, we may have lost connectivity with our host and we should
@@ -95,10 +94,10 @@ void InterfaceFG(void) {
   if(cmd_new_packet){ //serial packet received from x86
     switch(inFromSerial[cmd_read_idx][0]){ //look at opcode (loosely based on roomba command set)
       case PROTEUS_OPCODE_START :
-        if(Active = 0)
+        if (started == 0) {
             started = Scheduler_AddEvent_hz(&blinkStartLED,1);
+        }
         mode = PROTEUS_MODE_PASSIVE;
-        Active = 1;
         break;  
       case PROTEUS_OPCODE_BAUD :
         //change SCI baud rate
@@ -124,7 +123,6 @@ void InterfaceFG(void) {
         }
         MC_SetVel(0);
         Servo_SetSteeringAngle(0);
-        Active = 0;
         (unsigned char) Scheduler_RemoveEvent(started);
         LED_GREEN2 = 0;
         st = 0;
