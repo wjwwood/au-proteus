@@ -1,6 +1,7 @@
 package com.GCS.xbee_test;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -23,6 +24,7 @@ public class XBeeReadTest {
 	
 	private static final int CONSTANT = 123456;
 	private static final int PKT_SIZE_INTS = 21;
+	private static final String FILE_NAME = "/home/varun/latency.csv";
 
 	public static void main(String[] args) throws IOException {
 		PropertyConfigurator.configure("log4j.properties");
@@ -32,14 +34,22 @@ public class XBeeReadTest {
 			
 		int errorCount = 0;
 		int packetCount = 0;
+		long totalLatency = 0;
+		int totalPackets = 0;
 		
+		// create new latency.csv
+		File f = new File(FILE_NAME);
+		if (f.exists()) {
+			f.delete();
+		}
+		if (!f.createNewFile()) throw new IOException("Could not create file");
 		
 		try {
 			xbee.open("/dev/ttyUSB0", 115200);
 			try {
 				out = new BufferedWriter(new FileWriter ("/home/varun/latency.csv"));
-				while (packetCount < 10) {
-					// get packet and calculate latency
+				while (packetCount < 1000) {
+					// get packet and calculate latency (includes delay)
 					long prev = System.currentTimeMillis();
 					XBeeResponse resp = xbee.getResponse();
 					long next = System.currentTimeMillis();
@@ -63,11 +73,20 @@ public class XBeeReadTest {
 						// check for errors in packet
 						errorCount += errorCheck(ints, packetCount);
 						// output
-						System.out.println("Packet " + packetCount + ": Latency of " + (next-prev) + " ms.");
-						out.write(packetCount+","+(next-prev)+"\n");
+						long latency = next-prev;
+						if (latency < 1000) {	// ignore waiting for Arduino to start
+							totalLatency += latency;
+							totalPackets++;
+						}
+						//System.out.println("Packet " + packetCount + ": Latency of " + latency + " ms.");
+						out.write(packetCount+","+latency+"\n");
 					}
 				}
-				System.out.println("RSSI: "+getRSSI());
+				System.out.println("Delay: "+ints[1]);
+				System.out.println("RSSI: "+ getRSSI());
+				System.out.println("Errors: " + errorCount);
+				System.out.println("Goodput: " + ((float)(totalPackets*PKT_SIZE_INTS*4*8)/(float)totalLatency) +"kbps");
+				System.out.println("Throughput: " + ((float)(totalPackets*128*8)/(float)totalLatency) + "kbps");
 			}
 			catch (IOException e) {
 				e.printStackTrace();
@@ -90,7 +109,7 @@ public class XBeeReadTest {
 			System.err.println("count inconsistency, count @ "+packetCount+", received: "+ints[0]);
 			return 1;
 		}
-		for (int i = 1; i < PKT_SIZE_INTS; i++) {
+		for (int i = 2; i < PKT_SIZE_INTS; i++) {
 			if (ints[i] != CONSTANT) {
 				System.err.println("Constant inconsistency at int #" + i + ", value is " + ints[i]);
 				return 1;
