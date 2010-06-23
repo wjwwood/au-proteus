@@ -1,7 +1,7 @@
 #include <avr/io.h>
 #include <avr/eeprom.h>
 #include <math.h>
-#include <NewSoftSerial.h>
+#include "NewSoftSerial.h"
 #include "defines.h"
 
 //To use the header file in your library, use brackets:
