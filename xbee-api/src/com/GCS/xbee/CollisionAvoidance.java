@@ -27,6 +27,7 @@ public class CollisionAvoidance {
 		avoid.start();
 	}
 
+	// update hash map data and inform collision avoidance thread
 	public void addData(XBeeAddress64 addr, PlaneData data) {
 		if (data != null) {
 			synchronized (this) {
@@ -47,6 +48,7 @@ public class CollisionAvoidance {
 		// ArduPilot asks for these multipliers
 		waypoint[0] *= 10; waypoint[1] *= 10; waypoint[2] *= 100;
 		
+		// flip endian for payload (Arduino is Big Endian)
 		for (int i = 0; i < waypoint.length; i++) {
 			ByteBuffer bb = ByteBuffer.allocate(32);
 			bb.order(ByteOrder.LITTLE_ENDIAN);
@@ -89,8 +91,8 @@ public class CollisionAvoidance {
 				// Do magic in here?
 				XBeeAddress64 addr = latest;
 				//int[] waypoint = {32605800, -85487900, 300};
-				//int[] waypoint = {0,0,0};
-				int[] waypoint = {123,456,789};
+				int[] waypoint = {0,0,0};
+				//int[] waypoint = {123,456,789};
 				transmit(addr, waypoint);
 			}
 		}
