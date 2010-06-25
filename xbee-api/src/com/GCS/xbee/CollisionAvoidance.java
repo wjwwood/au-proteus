@@ -2,6 +2,7 @@ package com.GCS.xbee;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
@@ -16,26 +17,24 @@ public class CollisionAvoidance {
 	private static XBee xbee;
 	private static Logger log;
 	private HashMap<XBeeAddress64, PlaneData> dataMap;
-	private Thread avoid;
 	private XBeeAddress64 latest;
 	
 	public CollisionAvoidance(XBee xbee, Logger log) {
 		CollisionAvoidance.xbee = xbee;
 		CollisionAvoidance.log = log;
 		dataMap = new HashMap<XBeeAddress64, PlaneData>();
-		avoid = new Thread(new Avoid());
-		avoid.start();
+		new Thread(new Avoid()).start();
 	}
 
 	// update hash map data and inform collision avoidance thread
 	public void addData(XBeeAddress64 addr, PlaneData data) {
 		if (data != null) {
-			synchronized (this) {
+			synchronized (dataMap) {
 				dataMap.remove(addr);
 				dataMap.put(addr, data);
 				latest = addr;
 			}
-			avoid.interrupt();
+			dataMap.notify();
 		}
 	}
 	
@@ -59,7 +58,7 @@ public class CollisionAvoidance {
 			}
 		}
 		
-		// for the checksum
+		// put checksum (sum of lat and alt) in packet payload
 		ByteBuffer bb = ByteBuffer.allocate(32);
 		bb.order(ByteOrder.LITTLE_ENDIAN);
 		bb.putInt(waypoint[0] + waypoint[2]);
@@ -68,32 +67,34 @@ public class CollisionAvoidance {
 			payload[12+j] = bb.array()[j];
 		}
 		
+		// send packet
 		ZNetTxRequest request = new ZNetTxRequest(addr, payload);
-		log.debug("zb request is " + request.getXBeePacket().getPacket());	
-		//log.info("sending tx " + request);
-		//log.info("request is " + ByteUtils.toBase10(request.getXBeePacket().getPacket()));
 		try {
 			xbee.sendAsynchronous(request);
 		} catch (XBeeException e) {
 			e.printStackTrace();
 		}
+	
+		// log output
+		log.debug("zb request is " + request.getXBeePacket().getPacket());
+		log.info("sent " + Arrays.toString(waypoint) + " to " + addr);
 	}
 	
+	// thread that runs collision avoidance algorithm
 	private class Avoid implements Runnable {
-
 		@Override
 		public void run() {
-			// TODO Auto-generated method stub
-			while (true) {
-				try {	Thread.sleep(Long.MAX_VALUE);	}
-				catch (InterruptedException e) { }
-				
-				// Do magic in here?
-				XBeeAddress64 addr = latest;
-				//int[] waypoint = {32605800, -85487900, 300};
-				//int[] waypoint = {0,0,0};
-				//int[] waypoint = {123,456,789};
-				//transmit(addr, waypoint);
+			synchronized (dataMap) {
+				while (true) {		
+					try {
+						dataMap.wait();
+					} catch (InterruptedException e) { }
+					
+					// Do algorithm calculations in here after getting told from hash map about new data
+					XBeeAddress64 addr = latest;
+					int[] waypoint = {32594727,-85497500,250};		// south intramural field, HIGH alt
+					transmit(addr, waypoint);
+				}
 			}
 		}
 		

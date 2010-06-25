@@ -79,6 +79,7 @@ void reached_waypoint()
 		// -------------------------------------
 		waypoint_event(EVENT_SET_NEW_WAYPOINT_INDEX);
 		
+		// XXX: mod to remove arbitrary waypoint
 		fakeWP = false;
 
 		// load next WP

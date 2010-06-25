@@ -19,14 +19,13 @@ public class XBeeGCS {
 	private final static Logger log = Logger.getLogger(XBeeGCS.class);
 	private static XBee xbee;
 	private static CollisionAvoidance ca;
-	static long next;
-	static long prev;
 	
 	public static void main(String[] args) {
 		PropertyConfigurator.configure("log4j.properties");
 		xbee = new XBee();
 		ca = new CollisionAvoidance(xbee, log);
 		
+		// set up the coordinator XBee Serial communication and packet listening thread
 		try {
 			xbee.open("/dev/ttyUSB0", 115200);
 			xbee.addPacketListener(new GCSPacketListener());
@@ -40,16 +39,19 @@ public class XBeeGCS {
 		}
 	}
 	
-
-	
 	private static class GCSPacketListener implements PacketListener {
 
+		// keep track of time between packets
+		private long next;
+		private long prev;
+		
+		// receive packet and add the parsed data from it to the CA object's hash map
 		@Override
 		public void processResponse(XBeeResponse response) {
 			if (response.getApiId() == ApiId.ZNET_RX_RESPONSE) {
 				ZNetRxResponse rx = (ZNetRxResponse) response;
 				
-				log.info("Received RX packet, option is " + rx.getOption() + 
+				log.debug("Received RX packet, option is " + rx.getOption() + 
 						", sender 64 address is " + ByteUtils.toBase16(rx.getRemoteAddress64().getAddress()) + 
 						", remote 16-bit address is " + ByteUtils.toBase16(rx.getRemoteAddress16().getAddress()) + 
 						", data is " + ByteUtils.toBase16(rx.getData()));
@@ -58,19 +60,23 @@ public class XBeeGCS {
 			}
 		}
 		
-		private static PlaneData packetParser(ZNetRxResponse response) {
+		// parse packet payload and calculate communication
+		// return null if not a PlaneData packet
+		private PlaneData packetParser(ZNetRxResponse response) {
 			next = System.currentTimeMillis();
-			System.out.println("Time elapsed is " + (next-prev)+"ms, response length is "+response.getData().length);
+			log.debug("Time elapsed is " + (next-prev)+"ms, response length is "+response.getData().length);
 			prev = next;	
 			
-			// If response isn't a telemetry packet that we sent
+			// If response isn't a telemetry packet that we sent, just print it out
 			if (response.getData().length != 40) {
+				StringBuffer sb = new StringBuffer();
 				for (int i = 0; i < response.getData().length; i++)
-					System.out.print((char)response.getData()[i]);
-				System.out.println();
+					sb.append((char)response.getData()[i]);
+				log.info(sb.toString());
 				return null;
 			}
 			
+			// flip data in packet to little endian and store it in an int array
 			int planeDataArray[] = new int[10];
 			byte data[] = new byte[response.getData().length];
 			for (int i = 0; i < data.length; i++)
@@ -83,6 +89,7 @@ public class XBeeGCS {
 				planeDataArray[i / 4] = bb.getInt(0);
 			}
 			
+			// store data in new PlaneData object
 			PlaneData pd = new PlaneData();
 			pd.currLat = planeDataArray[0];
 			pd.currLng = planeDataArray[1];
@@ -95,7 +102,7 @@ public class XBeeGCS {
 			pd.currWP = planeDataArray[8];
 			pd.WPdistance = planeDataArray[9];
 			
-			System.out.println("Address: " + ByteUtils.toBase16(response.getRemoteAddress16().getAddress())
+			log.info("Address: " + ByteUtils.toBase16(response.getRemoteAddress16().getAddress())
 					+ " Data: " + pd);
 			
 			return pd;

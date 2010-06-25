@@ -39,7 +39,7 @@
 // XXX
 #define POSITION_2 AUTO
 //0-10
-#define POSITION_3 FLY_BY_WIRE_A
+#define POSITION_3 AUTO
 // So why isn't AUTO here by default? Well, please try and run Stabilize first, 
 // then FLY_BY_WIRE_A to verify you have good gains set up correctly 
 // before you try Auto and wreck your plane. I'll sleep better that way...
