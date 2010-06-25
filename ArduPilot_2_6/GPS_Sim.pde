@@ -4,20 +4,71 @@
 char gps_buffer[BUF_LEN];
 float dlat,dlng;
 
+
+void read_sim_sensors()
+{
+	roll_sensor = ((float)roll_sensor *.2f) + ((float)nav_roll *.8f);
+	pitch_sensor = ((float)pitch_sensor *.2f) + ((float)nav_pitch *.8f);
+	
+	#if THROTTLE_OUT == 0
+		servo_throttle = throttle_cruise;
+	#endif
+	
+	airspeed_current = throttle_cruise + ((float)airspeed_current *.9f) + ((float)servo_throttle *.1f);
+	airspeed_current = constrain(airspeed_current, 0, THROTTLE_MAX);
+}
+
+
 void decode_gps(void)
 {
 	static unsigned long GPS_timer = 0;
 	
+	// for testing only
+	GPS_fix = VALID_GPS;
+	
 	//testing 1hz simulation
-	if((millis() - GPS_timer) > 1000) {
+	if((millis() - GPS_timer) > 200) {
 		readCommands();
 		
+		// groundspeed from GPS
+		// --------------------
 		#if THROTTLE_IN == 0
 			ground_speed = (airspeed_current * 1340) / 30;
 		#else
 			ground_speed = ((float)(ch3_in - 1000) * 2000) / 1000;
 		#endif
-				
+		
+		
+		// groundcourse from GPS
+		// ---------------------
+		ground_course += (roll_sensor * (long)TURNRATE * (long)dTnav) / 90000L;
+						// 4500 * 130 * 1000 / 90000 = 6500
+
+		// wrap ground_course values
+		// -------------------------
+		if (ground_course > 36000)	ground_course -= 36000;
+		if (ground_course < 0) 		ground_course += 36000;		
+
+
+		// guess the climb rate
+		// --------------------
+		if(pitch_sensor >= 0){
+			climb_rate = (pitch_sensor * CLIMBRATE_UP * (long)dTnav) / 90000L;
+		}else{
+			climb_rate = (pitch_sensor * CLIMBRATE_DOWN * (long)dTnav) / 90000L;
+		}
+		current_loc.alt 	+= climb_rate;
+	
+		// Estimate the location of the aircraft
+		// -------------------------------------
+		float pb_Rad 		= (float)ground_course * .0001745;
+		float dist 			= ((float)(ground_speed * dTnav)) / 1000;
+		current_loc.lat 	+= cos(pb_Rad) * dist;						// Latitude = Y part
+		current_loc.lng 	+= (sin(pb_Rad) * dist) * scaleLongUp;		// Longitude = X part (scaled)
+
+
+
+
 		if(GPS_fix == VALID_GPS){
 			GPS_timer = millis(); //Restarting timer...
 			digitalWrite(12,HIGH);
@@ -57,6 +108,7 @@ void init_gps(void)
 
 	//fast_init_gps();
 	//wait_for_GPS_fix();
+	init_test_location();
 }
 
 
@@ -207,70 +259,6 @@ void parseCommand(char *buffer)
 
 		}
 		//*/
-	}
-}
-
-
-void navigate_sim()
-{
-	
-	if(GPS_update & GPS_BOTH)
-	{
-		/* 
-		this is what the GPS provides:
-		ground_course	- 0 to 359 degrees *100
-		ground_speed  	- m/s * 100
-		climb_rate		- m/s * 100
-		*/
-
-		// guess the climb rate
-		// --------------------
-		if(pitch_sensor >= 0){
-			climb_rate = (pitch_sensor * CLIMBRATE_UP * (long)deltaMiliSeconds) / 90000L;
-		}else{
-			climb_rate = (pitch_sensor * CLIMBRATE_DOWN * (long)deltaMiliSeconds) / 90000L;
-		}
-		
-		dlat 	= dlng = 0;
-		est_loc = current_loc;
-
-	}else{
-	
-		// Dead Reckon:
-		// Estimate the location of the aircraft
-		// -------------------------------------
-		float pb_Rad 		= (float)ground_course * .0001745;
-		float dist 			= ((float)(ground_speed * deltaMiliSeconds)) / 1000;
-		dlat 				+= cos(pb_Rad) * dist;
-		dlng 				+= sin(pb_Rad) * dist;	
-		current_loc.lat 	= est_loc.lat + dlat;	// latitude = Y part
-		current_loc.lng 	= est_loc.lng + (dlng * scaleLongUp);	// Longitude = X part (scaled)
-			// use climb_rate from IR Sensors
-		current_loc.alt 	= est_loc.alt + climb_rate;
-		
-		// clamp the roll sensor so wildness doesn't ensue
-		// ----------------------------------------------
-		long roll_sensorClamp = constrain(roll_sensor, -4500, 4500);
-		
-		// run simulation to arrive at intermediate values
-		// -----------------------------------------------
-		est_turn_rate = (roll_sensorClamp * (long)TURNRATE * (long)deltaMiliSeconds) / 90000L;
-		// 4500 * 130 * 1000 / 90000 = 6500
-				
-		// Integrate the turn rate guess - GPS will overwrite this val 
-		// -----------------------------------------------------------
-		ground_course += est_turn_rate;
-
-		// Save turn rate for the print function
-		// -------------------------------------
-		est_turn_rate = -(roll_sensorClamp * (long)TURNRATE) / 90L;
-		// 4500 * 130 / 90 = 6500
-
-		// wrap ground_course values
-		// -------------------------
-		if (ground_course > 36000)	ground_course -= 36000;
-		if (ground_course < 0) 		ground_course += 36000;
-		
 	}
 }
 #endif

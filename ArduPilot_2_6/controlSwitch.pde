@@ -6,10 +6,7 @@ void read_control_switch()
 {
 	byte switchPosition = readSwitch();
 	if (oldSwitchPosition != switchPosition){
-		if(failsafe) {
-			set_failsafe(false);
-		}
-		// we have moved the switch
+
 		// tell user about it, it is up to them to deal with it!
 		switch_event(switchPosition);
 		oldSwitchPosition = switchPosition;

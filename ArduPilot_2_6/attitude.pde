@@ -3,36 +3,36 @@
  ****************************************************************/
 
 
-void stabilize()     
+void stabilize()
 {
 
 	float ch1_inf = 1.0;
 	float ch2_inf = 1.0;
-  
-	if(GPS_fix == FAILED_GPS && control_mode > FLY_BY_WIRE_B){		//  NOTE - FAILED_GPS is only set by GPS_IMU at present
-		nav_roll = HEAD_MAX / 3;   					// If we have lost gps and have no ability to navigate we will circle at a gentle bank angle
-	}									// This is a second form of failsafe, different from losing radio signal.
+	
+	if(GPS_fix == FAILED_GPS && control_mode > FLY_BY_WIRE_B){		
+		nav_roll = HEAD_MAX / 3;   		// If we have lost gps and have no ability to navigate we will circle at a gentle bank angle
+	}									// This is another form of failsafe, different from losing radio signal.
 
         
 	if ((AP_STICK_MIXING == 1 && control_mode > FLY_BY_WIRE_B) || control_mode < FLY_BY_WIRE_A) {
 		ch1_inf = (float)ch1_in - (float)ch1_trim;
-		ch1_inf = abs(ch1_inf);									
-		ch1_inf = min(ch1_inf, 400.0);							
+		ch1_inf = abs(ch1_inf);
+		ch1_inf = min(ch1_inf, 400.0);
 		ch1_inf = ((400.0 - ch1_inf) /400.0);
 		ch2_inf = (float)ch2_in - (float)ch2_trim;
 		ch2_inf = abs(ch2_inf);									
 		ch2_inf = min(ch2_inf, 400.0);							
 		ch2_inf = ((400.0 - ch2_inf) /400.0);
 	}
-        
+	
 	// ------------------------------------------------
 	if (wp_index >= SLOW_WAYPOINT) {
-            cruise_airspeed = AIRSPEED_SLOW;  
-            throttle_cruise = THROTTLE_SLOW;
-        }
+		cruise_airspeed = AIRSPEED_SLOW;
+		throttle_cruise = THROTTLE_SLOW;
+	}
 	
-        if (takeoffComplete == 1) {
-	  if (control_mode > FLY_BY_WIRE_B && AIRSPEED_SENSOR) {
+	if (takeoffComplete == 1) {
+		if (control_mode > FLY_BY_WIRE_B && AIRSPEED_SENSOR) {
 		airspeed_error = cruise_airspeed - airspeed_current;
 		// Remember airspeed values are really a pressure value, not m/s            
 		// NOTE - Airspeed is stored and used in the program as an integer pressure value
@@ -42,16 +42,15 @@ void stabilize()
 		
 		// We scale airspeed_error up by 100 in the PID function call to be same order of magnitude as altitude error (centimeters)
 		// in the no airspeed sensor case for consistency
-		nav_pitch = - PID((airspeed_error*100),dTnav,CASE_NAV_PITCH);
-                 
+		nav_pitch = - PID((airspeed_error*100), dTnav, CASE_NAV_PITCH);
+			 
 		// pitch down is negative - Pitch up to climb (below), Pitch up to go faster (above)
 	  } else if ((control_mode > FLY_BY_WIRE_B) && !AIRSPEED_SENSOR) {
-		nav_pitch = PID(altitude_error,dTnav,CASE_NAV_PITCH);
+		nav_pitch = PID(altitude_error, dTnav, CASE_NAV_PITCH);
 	  }
-	
 	  nav_pitch = constrain(nav_pitch,PITCH_MIN,PITCH_MAX);
-        } 
-       
+	}
+
 	// Calculate dersired servo output for the roll 
 	// ---------------------------------------------
 	servo_roll	= ch1_inf * PID((nav_roll - roll_sensor),   deltaMiliSeconds, CASE_SERVO_ROLL);
@@ -71,12 +70,7 @@ void stabilize()
 
 	// throttle control with airspeed compensation   
 	// -------------------------------------------
-	//  
-	
-	if (failsafe!=0) {
-		servo_throttle = THROTTLE_CRUISE;
-	
-	} else if ((control_mode > FLY_BY_WIRE_B) && AIRSPEED_SENSOR) {
+	if ((control_mode > FLY_BY_WIRE_B) && AIRSPEED_SENSOR) {
 		if (wp_index >= THROTTLE_CUT_WAYPOINT) {
 			servo_throttle = 0;
 		} else {
@@ -125,10 +119,16 @@ void calc_nav_roll()
 
 	#define TARGET_AIRSPEED sqrt(CRUISE_AIRSPEED / 0.1254)
 	
-	#if (GPS_PROTOCOL != 3 && AIRSPEED_SENSOR )			//If we don't have IMU we will estimate ground course between fixes
+	#if (GPS_PROTOCOL != 3 && AIRSPEED_SENSOR )			
+		//If we don't have IMU we will estimate ground course between fixes
 		float calc_airspeed = sqrt(airspeed_current / 0.1254);
-		float calc_turn_rate = 100. * 57.29 * (9.8 * tan(radians(roll_sensor/100))) / calc_airspeed;		// w = g tan(b) / v     (degrees*100)/second
-		ground_course_est += constrain(calc_turn_rate * dTnav / 1000.f, -1000, 1000) ;	//  Need formula for turn rate based on airspeed and bank angle
+
+		// w = g tan(b) / v     (degrees*100)/second
+		float calc_turn_rate = 100. * 57.29 * (9.8 * tan(radians(roll_sensor/100))) / calc_airspeed;
+
+		//  Need formula for turn rate based on airspeed and bank angle
+		ground_course_est += constrain(calc_turn_rate * dTnav / 1000.f, -1000, 1000) ;	
+
 		if (ground_course_est > 18000)	ground_course_est -= 36000;
 		if (ground_course_est < -18000)	ground_course_est += 36000;
 		
@@ -173,4 +173,5 @@ float throttle_slew_limit(float throttle)
 		return temp;
 }
 	
+
 
