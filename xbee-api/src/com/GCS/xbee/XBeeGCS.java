@@ -28,7 +28,7 @@ public class XBeeGCS {
 		ca = new CollisionAvoidance(xbee, log);
 		
 		try {
-			xbee.open("/dev/ttyUSB0", 9600);
+			xbee.open("/dev/ttyUSB0", 115200);
 			xbee.addPacketListener(new GCSPacketListener());
 			while (true);
 		}
