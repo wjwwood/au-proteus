@@ -33,8 +33,8 @@ public class CollisionAvoidance {
 				dataMap.remove(addr);
 				dataMap.put(addr, data);
 				latest = addr;
+				dataMap.notify();
 			}
-			dataMap.notify();
 		}
 	}
 	
