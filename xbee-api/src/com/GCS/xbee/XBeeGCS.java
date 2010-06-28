@@ -20,7 +20,7 @@ public class XBeeGCS {
 	private static XBee xbee;
 	private static CollisionAvoidance ca;
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		PropertyConfigurator.configure("log4j.properties");
 		xbee = new XBee();
 		ca = new CollisionAvoidance(xbee, log);
@@ -29,7 +29,8 @@ public class XBeeGCS {
 		try {
 			xbee.open("/dev/ttyUSB0", 115200);
 			xbee.addPacketListener(new GCSPacketListener());
-			while (true);
+			// hackish way of making the thread sleep forever.  open to other suggestions...
+			Thread.sleep(Long.MAX_VALUE);
 		}
 		catch (XBeeException e) {
 			e.printStackTrace();
@@ -101,13 +102,12 @@ public class XBeeGCS {
 			pd.target_bearing = planeDataArray[7];
 			pd.currWP = planeDataArray[8];
 			pd.WPdistance = planeDataArray[9];
-			
-			log.info("Address: " + ByteUtils.toBase16(response.getRemoteAddress16().getAddress())
-					+ " Data: " + pd);
-			
+						
 			return pd;
 		}
 	}
+
+
 }
 
 

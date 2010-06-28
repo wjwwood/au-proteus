@@ -18,21 +18,29 @@ public class CollisionAvoidance {
 	private static Logger log;
 	private HashMap<XBeeAddress64, PlaneData> dataMap;
 	private XBeeAddress64 latest;
+	private int planeCounter;
 	
 	public CollisionAvoidance(XBee xbee, Logger log) {
 		CollisionAvoidance.xbee = xbee;
 		CollisionAvoidance.log = log;
 		dataMap = new HashMap<XBeeAddress64, PlaneData>();
+		planeCounter = 0;
 		new Thread(new Avoid()).start();
 	}
 
 	// update hash map data and inform collision avoidance thread
 	public void addData(XBeeAddress64 addr, PlaneData data) {
 		if (data != null) {
+			// associate a plane number with the incoming data
+			if (!dataMap.containsKey(addr))
+				data.num = ++planeCounter;
+			else 
+				data.num = dataMap.get(addr).num;
+			// update hash map
+			latest = addr;
+			log.info(data);
 			synchronized (dataMap) {
-				dataMap.remove(addr);
 				dataMap.put(addr, data);
-				latest = addr;
 				dataMap.notify();
 			}
 		}
