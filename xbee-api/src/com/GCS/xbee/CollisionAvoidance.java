@@ -85,7 +85,9 @@ public class CollisionAvoidance {
 	
 		// log output
 		log.debug("zb request is " + request.getXBeePacket().getPacket());
-		log.info("sent " + Arrays.toString(waypoint) + " to " + addr);
+		// undo the multipliers to make logging prettier
+		waypoint[0] /= 10; waypoint[1] /= 10; waypoint[2] /= 100;
+		log.info("sent " + Arrays.toString(waypoint) + " to Plane " + dataMap.get(addr).num);
 	}
 	
 	// thread that runs collision avoidance algorithm
