@@ -47,11 +47,14 @@ public class CollisionAvoidance {
 	}
 	
 	// Assume data has 3 fields: latitude, longitude, and altitude
-	private void transmit(XBeeAddress64 addr, int[] waypoint) {
+	private void transmit(XBeeAddress64 addr, Coordinate wp) {
+		int waypoint[] = new int[3];
 		int payload[] = new int[16];	//4 int32's
 		
 		// ArduPilot asks for these multipliers
-		waypoint[0] *= 10; waypoint[1] *= 10; waypoint[2] *= 100;
+		waypoint[0] = (int) (wp.x * 10); 
+		waypoint[1] = (int) (wp.y * 10);
+		waypoint[2] = (int) (wp.z * 100);
 		
 		// flip endian for payload (Arduino is Big Endian)
 		for (int i = 0; i < waypoint.length; i++) {
@@ -94,7 +97,6 @@ public class CollisionAvoidance {
 		double z;
 	}
 
-	
 	// thread that runs collision avoidance algorithm
 	private class Avoid implements Runnable {
 
@@ -102,41 +104,43 @@ public class CollisionAvoidance {
 		public void run() {
 			synchronized (dataMap) {
 				while (true) {		
-					try {
-						dataMap.wait();
-					} catch (InterruptedException e) { }
+					// wait for new data
+					try {	dataMap.wait();	} catch (InterruptedException e) { }
 					
-					// Do algorithm calculations in here after getting told from hash map about new data
-					XBeeAddress64 addr = latest;
-					Coordinate sumRepulsive = new Coordinate();
+					// Start calculations after getting told from hash map about new data
+					
+					PlaneData plane = dataMap.get(latest);		// the plane in question
+					Coordinate sumRepulsive = new Coordinate();	// the sum of repulsive force vectors
 					sumRepulsive.x = 0; sumRepulsive.y = 0; sumRepulsive.z = 0;
 
-					for (PlaneData airplane : dataMap.values()) {
-						if (airplane != dataMap.get(latest)) {
-							Coordinate repulse = new Coordinate();
-							forceRepulsive(dataMap.get(latest), airplane, repulse);
+					// iterate over all other planes ("active objects") and calculate repulsive forces
+					for (PlaneData active : dataMap.values()) {
+						if (active != plane) {
+							Coordinate repulse = forceRepulsive(plane, active);
 							log.debug("The repulsive force vector is: <" + repulse.x + "," + repulse.y + ">");
-							sumRepulsive.x += repulsive.x;
-							sumRepulsive.y += repulsive.y;
+							sumRepulsive.x += repulse.x;
+							sumRepulsive.y += repulse.y;
 						}
 					}
 
-					Coordinate attract = new Coordinate();
-					forceAttractive(latest, attract);
+					// calculate an attractive force placed by the destination
+					Coordinate attract = forceAttractive(plane);
 
+					// sum the repulsive and attractive forces
 					Coordinate resultant = new Coordinate();
 					resultant.x = sumRepulsive.x + attract.x;
 					resultant.y = sumRepulsive.y + attract.y;
 
 					log.debug("The resultant force vector is: <" + resultant.x + "," + resultant.y + ">");
 
+					// add the resultant force to the current waypoint to get the intermediate point
 					Coordinate newWP = new Coordinate();
-					newWP.x = resultant.x + dataMap.get(latest).currLat;
-					newWP.y = resultant.y + dataMap.get(latest).currLng;
-					newWP.z = dataMap.get(latest).currAlt;
+					newWP.x = resultant.x + plane.currLat;
+					newWP.y = resultant.y + plane.currLng;
+					newWP.z = plane.currAlt;
 
-					int[] waypoint = {32594727,-85497500,250};		// south intramural field, HIGH alt
-//					transmit(addr, waypoint);
+					//int[] waypoint = {32594727,-85497500,250};		// south intramural field, HIGH alt
+					transmit(latest, newWP);
 				}
 			}
 		}
@@ -145,36 +149,38 @@ public class CollisionAvoidance {
 			return Math.sqrt(Math.pow(x1-x0,2) + Math.pow(y1-y0,2));
 		}
 
-		private void forceRepulsive(PlaneData airplane, PlaneData active, Coordinate repulse) {
-			double distance;
-			double x, y;
-			int[] active = new int[3];
+		private Coordinate forceRepulsive(PlaneData airplane, PlaneData active) {
 			final double Fcr = 10;
 
-			distance = distance2D(active.currLat, active.currLng, airplane.currLat, airplane.currLng);
+			double distance = distance2D(active.currLat, active.currLng, airplane.currLat, airplane.currLng);
 
-			x = ((airplane.currLat - active.currLat) / distance);
-			y = ((airplane.currLng - active.currLng) / distance);
+			double x = ((airplane.currLat - active.currLat) / distance);
+			double y = ((airplane.currLng - active.currLng) / distance);
 
 			log.debug("The repulsive force unit vector is <" + x + "," + y + ">");
-			repulse.x = (Fcr / Math.pow(distance, 2)) * ((airplane.x - active.x) / distance);
-			repulse.y = (Fcr / Math.pow(distance, 2)) * ((airplane.y - active.y) / distance);
+			
+			Coordinate repulse = new Coordinate();
+			repulse.x = Fcr / Math.pow(distance, 2) * x;
+			repulse.y = Fcr / Math.pow(distance, 2) * y;
+			
+			return repulse;
 		}
 
-		private void forceAttractive(PlaneData airplane, Coordinate attract) {
-			double distance;
-			double x, y, x2, y2;
+		private Coordinate forceAttractive(PlaneData airplane) {
 			final double Fct = 5;
 
-			distance = distance2D(airplane.nextLat, airplane.nextLng, airplane.currLat, airplane.currLng);
+			double distance = distance2D(airplane.nextLat, airplane.nextLng, airplane.currLat, airplane.currLng);
 
-			x = ((airplane.nextLat - airplane.currLat) / distance);
-			y = ((airplane.nextLng - airplane.currLng) / distance);
+			double x = ((airplane.nextLat - airplane.currLat) / distance);
+			double y = ((airplane.nextLng - airplane.currLng) / distance);
 
 			log.debug("The attractive force unit vector is: <" + x + "," + y + ">");
 
-			attract.x = Fct*(airplane.nextLat - airplane.currLat) / distance;
-			attract.y = Fct*(airplane.nextLng - airplane.currLng) / distance;
+			Coordinate attract = new Coordinate();
+			attract.x = Fct*x;
+			attract.y = Fct*y;
+			
+			return attract;
 		}
 
 		
