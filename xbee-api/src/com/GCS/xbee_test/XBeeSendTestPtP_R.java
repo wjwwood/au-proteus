@@ -16,7 +16,7 @@ public class XBeeSendTestPtP_R {
 
 	private static final int CONSTANT = 123;		// constant number to fill packet
 	private static final int PKT_SIZE_INTS = 21;	// packet payload size of 84 bytes (32-bit ints)
-	private static final int NUM_PACKETS = 200;	// number of packets to send
+	private static final int NUM_PACKETS = 1000;	// number of packets to send
 
 	public static void main(String[] args) throws InterruptedException {
 		PropertyConfigurator.configure("log4j.properties");
@@ -37,7 +37,9 @@ public class XBeeSendTestPtP_R {
 				if (resp.getApiId() == ApiId.ZNET_RX_RESPONSE) {	
 					log.info("Packet " + packetCount + ": Latency of " + latency/1000000 + " ms.");
 					// check for errors
-					errorCount += errorCheck((ZNetRxResponse) resp, packetCount);
+					ZNetRxResponse rx = (ZNetRxResponse) resp;
+					if (rx.getData().length > 0)
+						errorCount += errorCheck(rx, packetCount);
 				}
 
 				//update packet count

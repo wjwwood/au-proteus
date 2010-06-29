@@ -18,8 +18,9 @@ public class XBeeSendTestPtP_S {
 	private static final int CONSTANT = 123;		// constant number to fill packet
 	private static final int PKT_SIZE_INTS = 21;	// packet payload size of 84 bytes (32-bit ints)
 	private static final int NUM_PACKETS = 200;	// number of packets to send
-	private static final int DELAY = 0;			// milliseconds of delay between packet transmits
-	private static final XBeeAddress64 DEST_64 = new XBeeAddress64(0, 0x13, 0xA2, 0, 0x40, 0x62, 0xD6, 0xED);	// IEEE address of receiving node
+	private static final int DELAY = 100;			// milliseconds of delay between packet transmits
+	private static final XBeeAddress64 DEST_64 = new XBeeAddress64(0, 0x13, 0xA2, 0, 0x40, 0x62, 0xD6, 0xED);	// IEEE address of receiving node (API)
+	//private static final XBeeAddress64 DEST_64 = new XBeeAddress64(0, 0x13, 0xA2, 0, 0x40, 0x62, 0xD6, 0xEE);	// IEEE address of receiving node (AT)
 
 	public static void main(String[] args) throws InterruptedException {
 		PropertyConfigurator.configure("log4j.properties");
@@ -48,8 +49,8 @@ public class XBeeSendTestPtP_S {
 				long beforeSend = System.nanoTime();
 				try {
 					//xbee.sendSynchronous(new ZNetTxRequest(1, DEST_64, dest_16, 0, 1, payload), 5000);
-					xbee.sendSynchronous(new ZNetTxRequest(DEST_64, payload), 5000);
-					//xbee.sendAsynchronous(new ZNetTxRequest(DEST_64, payload));
+					//xbee.sendSynchronous(new ZNetTxRequest(DEST_64, payload), 5000);
+					xbee.sendAsynchronous(new ZNetTxRequest(DEST_64, payload));
 				} catch (XBeeTimeoutException e) {
 					errorCount++;
 					log.warn("ERROR, ACK 5sec timeout");
@@ -58,7 +59,7 @@ public class XBeeSendTestPtP_S {
 
 				// output individual packet results
 				log.debug("Packet " + packetCount + ": Latency of " + latency/1000000 + " ms.");
-				log.info(packetCount+","+latency+"\n");
+				log.info(packetCount+","+latency);
 
 				//update packet count
 				packetCount++;
