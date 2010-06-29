@@ -38,7 +38,7 @@ public class XBeeSendTestPtP_R {
 					log.info("Packet " + packetCount + ": Latency of " + latency/1000000 + " ms.");
 					// check for errors
 					ZNetRxResponse rx = (ZNetRxResponse) resp;
-					if (rx.getData().length > 0)
+					if (rx.getData().length == PKT_SIZE_INTS * 4)
 						errorCount += errorCheck(rx, packetCount);
 				}
 
