@@ -18,7 +18,7 @@ public class XBeeSendTestPtP_S {
 	private static final int CONSTANT = 123;		// constant number to fill packet
 	private static final int PKT_SIZE_INTS = 21;	// packet payload size of 84 bytes (32-bit ints)
 	private static final int NUM_PACKETS = 200;	// number of packets to send
-	private static final int DELAY = 100;			// milliseconds of delay between packet transmits
+	private static final int DELAY = 0;			// milliseconds of delay between packet transmits
 	private static final XBeeAddress64 DEST_64 = new XBeeAddress64(0, 0x13, 0xA2, 0, 0x40, 0x62, 0xD6, 0xED);	// IEEE address of receiving node (API)
 	//private static final XBeeAddress64 DEST_64 = new XBeeAddress64(0, 0x13, 0xA2, 0, 0x40, 0x62, 0xD6, 0xEE);	// IEEE address of receiving node (AT)
 
@@ -27,30 +27,29 @@ public class XBeeSendTestPtP_S {
 		xbee = new XBee();
 		int[] payload = new int[PKT_SIZE_INTS*4];	// payload[] entries are actually bytes, but XBee-API doesn't like that primitive...
 
-		int packetCount = 1;
+		int packetCount = 0;
 		int errorCount = 0;
 		long startTime = 0;
 
-		// initialize packet payload (payload[0-3] holds packet count)
-		payload[3] = 1;
-		for (int i = 4; i < PKT_SIZE_INTS*4; i++) payload[i] = CONSTANT;
+		// initialize big endian packet payload (payload[0-3] holds packet count)
+		for (int i = 7; i < PKT_SIZE_INTS*4; i+=4) payload[i] = CONSTANT;
 
 		try {
 			xbee.open("/dev/ttyUSB0", 115200);
 			XBeeAddress16 dest_16 = Shared.get16Addr(xbee, DEST_64);
 
-			while (packetCount <= NUM_PACKETS) {
+			while (packetCount < NUM_PACKETS) {
 				// delay before sending next packet
-				if (packetCount > 1) Thread.sleep(DELAY);
+				if (packetCount > 0) Thread.sleep(DELAY);
 				// 1st packet is always slow, skip counting it
-				if (packetCount == 2) startTime  = System.currentTimeMillis();
+				if (packetCount == 1) startTime  = System.currentTimeMillis();
 
 				// send packet and calculate latency after receiving ACK
 				long beforeSend = System.nanoTime();
 				try {
 					//xbee.sendSynchronous(new ZNetTxRequest(1, DEST_64, dest_16, 0, 1, payload), 5000);
-					//xbee.sendSynchronous(new ZNetTxRequest(DEST_64, payload), 5000);
-					xbee.sendAsynchronous(new ZNetTxRequest(DEST_64, payload));
+					xbee.sendSynchronous(new ZNetTxRequest(DEST_64, payload), 5000);
+					//xbee.sendAsynchronous(new ZNetTxRequest(DEST_64, payload));
 				} catch (XBeeTimeoutException e) {
 					errorCount++;
 					log.warn("ERROR, ACK 5sec timeout");
