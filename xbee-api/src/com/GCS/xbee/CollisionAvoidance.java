@@ -103,7 +103,7 @@ public class CollisionAvoidance {
 					// Do algorithm calculations in here after getting told from hash map about new data
 					XBeeAddress64 addr = latest;
 					int[] waypoint = {32594727,-85497500,250};		// south intramural field, HIGH alt
-					transmit(addr, waypoint);
+//					transmit(addr, waypoint);
 				}
 			}
 		}
