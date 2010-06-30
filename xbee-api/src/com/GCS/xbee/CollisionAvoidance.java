@@ -25,7 +25,7 @@ public class CollisionAvoidance {
 		CollisionAvoidance.log = log;
 		dataMap = new HashMap<XBeeAddress64, PlaneData>();
 		planeCounter = 0;
-		new Thread(new Avoid()).start();
+		//new Thread(new Avoid()).start();
 	}
 
 	// update hash map data and inform collision avoidance thread

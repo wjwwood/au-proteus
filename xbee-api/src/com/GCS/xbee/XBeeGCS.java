@@ -34,9 +34,9 @@ public class XBeeGCS {
 		PropertyConfigurator.configure("log4j.properties");
 		xbee = new XBee();
 		ca = new CollisionAvoidance(xbee, log);
-		xbee.addPacketListener(new GCSPacketListener());
+		xbee.addPacketListener(new GCSPacketListener());	// packet listener for plane data
 
-		new GUI();
+		new GUI();	// create a GUI for loading arbitrary waypoints
 	}
 
 	public static void main(String[] args) throws InterruptedException {
@@ -77,6 +77,7 @@ public class XBeeGCS {
 
 		}
 
+		// read coordinate from text field and transmit it to the latest plane
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			String string = text.getText();
@@ -84,9 +85,9 @@ public class XBeeGCS {
 			scanner.useDelimiter(", ");
 			CollisionAvoidance.Coordinate wp = new CollisionAvoidance.Coordinate();
 			try {
-				wp.x = (double) scanner.nextInt();
-				wp.y = (double) scanner.nextInt();
-				wp.z = (double) scanner.nextInt();
+				wp.x = scanner.nextDouble() * 1000000;
+				wp.y = scanner.nextDouble() * 1000000;
+				wp.z = scanner.nextDouble();
 			}
 			catch (InputMismatchException e) {
 				log.error("input mismatch exception caught");
