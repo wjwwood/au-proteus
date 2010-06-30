@@ -17,9 +17,9 @@ define uav_laser laser (
 
 define uav position (
     # Physical size
-    size [1 2 0.1]
+    size [1 1 0.1]
     
-    origin [0 0 0]
+    origin [0 0 0 0]
     
     drive "omni"
     
