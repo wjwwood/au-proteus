@@ -3,10 +3,13 @@ package com.GCS.xbee_test;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
+import com.rapplogic.xbee.api.PacketListener;
 import com.rapplogic.xbee.api.XBee;
 import com.rapplogic.xbee.api.XBeeAddress16;
 import com.rapplogic.xbee.api.XBeeAddress64;
 import com.rapplogic.xbee.api.XBeeException;
+import com.rapplogic.xbee.api.XBeeFrameIdResponse;
+import com.rapplogic.xbee.api.XBeeResponse;
 import com.rapplogic.xbee.api.XBeeTimeoutException;
 import com.rapplogic.xbee.api.zigbee.ZNetTxRequest;
 
@@ -17,10 +20,10 @@ public class XBeeSendTestPtP_S {
 
 	private static final int CONSTANT = 123;		// constant number to fill packet
 	private static final int PKT_SIZE_INTS = 21;	// packet payload size of 84 bytes (32-bit ints)
-	private static final int NUM_PACKETS = 200;	// number of packets to send
+	private static final int NUM_PACKETS = 250;		// number of packets to send
 	private static final int DELAY = 0;			// milliseconds of delay between packet transmits
-	private static final XBeeAddress64 DEST_64 = new XBeeAddress64(0, 0x13, 0xA2, 0, 0x40, 0x62, 0xD6, 0xED);	// IEEE address of receiving node (API)
-	//private static final XBeeAddress64 DEST_64 = new XBeeAddress64(0, 0x13, 0xA2, 0, 0x40, 0x62, 0xD6, 0xEE);	// IEEE address of receiving node (AT)
+	//private static final XBeeAddress64 DEST_64 = new XBeeAddress64(0, 0x13, 0xA2, 0, 0x40, 0x62, 0xD6, 0xED);	// IEEE address of receiving node (API)
+	private static final XBeeAddress64 DEST_64 = new XBeeAddress64(0, 0x13, 0xA2, 0, 0x40, 0x62, 0xD6, 0xEE);	// IEEE address of receiving node (AT)
 
 	public static void main(String[] args) throws InterruptedException {
 		PropertyConfigurator.configure("log4j.properties");
@@ -31,16 +34,17 @@ public class XBeeSendTestPtP_S {
 		int errorCount = 0;
 		long startTime = 0;
 
-		// initialize big endian packet payload (payload[0-3] holds packet count)
-		for (int i = 7; i < PKT_SIZE_INTS*4; i+=4) payload[i] = CONSTANT;
+		// initialize little endian packet payload (payload[0-3] holds packet count)
+		for (int i = 4; i < PKT_SIZE_INTS*4; i+=4) payload[i] = CONSTANT;
 
 		try {
 			xbee.open("/dev/ttyUSB0", 115200);
+			xbee.addPacketListener(new ACKPacketListener());
 			XBeeAddress16 dest_16 = Shared.get16Addr(xbee, DEST_64);
 
 			while (packetCount < NUM_PACKETS) {
 				// delay before sending next packet
-				if (packetCount > 0) Thread.sleep(DELAY);
+				Thread.sleep(DELAY);
 				// 1st packet is always slow, skip counting it
 				if (packetCount == 1) startTime  = System.currentTimeMillis();
 
@@ -48,11 +52,11 @@ public class XBeeSendTestPtP_S {
 				long beforeSend = System.nanoTime();
 				try {
 					//xbee.sendSynchronous(new ZNetTxRequest(1, DEST_64, dest_16, 0, 1, payload), 5000);
-					xbee.sendSynchronous(new ZNetTxRequest(DEST_64, payload), 5000);
-					//xbee.sendAsynchronous(new ZNetTxRequest(DEST_64, payload));
+					//xbee.sendSynchronous(new ZNetTxRequest(DEST_64, payload), 5000);
+					xbee.sendAsynchronous(new ZNetTxRequest(packetCount, DEST_64, dest_16, 0, 0, payload));
 				} catch (XBeeTimeoutException e) {
 					errorCount++;
-					log.warn("ERROR, ACK 5sec timeout");
+					log.error("ERROR, ACK 5sec timeout");
 				}
 				long latency = System.nanoTime() - beforeSend;
 
@@ -62,10 +66,10 @@ public class XBeeSendTestPtP_S {
 
 				//update packet count
 				packetCount++;
-				payload[0] = (packetCount >> 24) & 0xFF;
-				payload[1] = (packetCount >> 16) & 0xFF;
-				payload[2] = (packetCount >> 8) & 0xFF;
-				payload[3] = packetCount & 0xFF;
+				payload[3] = (packetCount >> 24) & 0xFF;
+				payload[2] = (packetCount >> 16) & 0xFF;
+				payload[1] = (packetCount >> 8) & 0xFF;
+				payload[0] = packetCount & 0xFF;
 			}
 
 			long totalLatency = System.currentTimeMillis() - startTime;
@@ -85,6 +89,16 @@ public class XBeeSendTestPtP_S {
 		}
 
 	}
+	
+	private static class ACKPacketListener implements PacketListener {
 
-
+		@Override
+		public void processResponse(XBeeResponse response) {
+			if (response instanceof XBeeFrameIdResponse /*&& ((XBeeFrameIdResponse)response).getFrameId() == xbeeRequest.getFrameId()*/) {
+				log.info("ACK: frame ID of " + ((XBeeFrameIdResponse)response).getFrameId());
+			}
+			
+		}
+		
+	}
 }
