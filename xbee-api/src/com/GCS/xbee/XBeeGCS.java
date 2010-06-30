@@ -1,7 +1,17 @@
 package com.GCS.xbee;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.InputMismatchException;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -19,16 +29,21 @@ public class XBeeGCS {
 	private final static Logger log = Logger.getLogger(XBeeGCS.class);
 	private static XBee xbee;
 	private static CollisionAvoidance ca;
-	
-	public static void main(String[] args) throws InterruptedException {
+
+	public XBeeGCS () {
 		PropertyConfigurator.configure("log4j.properties");
 		xbee = new XBee();
 		ca = new CollisionAvoidance(xbee, log);
-		
-		// set up the coordinator XBee Serial communication and packet listening thread
+		xbee.addPacketListener(new GCSPacketListener());
+
+		new GUI();
+	}
+
+	public static void main(String[] args) throws InterruptedException {
+		new XBeeGCS();
+		// set up the coordinator XBee Serial communication
 		try {
 			xbee.open("/dev/ttyUSB0", 115200);
-			xbee.addPacketListener(new GCSPacketListener());
 			// hackish way of making the thread sleep forever.  open to other suggestions...
 			Thread.sleep(Long.MAX_VALUE);
 		}
@@ -39,35 +54,82 @@ public class XBeeGCS {
 			xbee.close();
 		}
 	}
-	
-	private static class GCSPacketListener implements PacketListener {
+
+	private class GUI extends JFrame implements ActionListener {
+		private JTextField text;
+
+		public GUI() {
+			super ("Load Arbitrary Waypoint");
+
+			text = new JTextField(50);
+			text.addActionListener(this);
+
+			JButton button = new JButton("Load");
+			button.addActionListener(this);
+
+			JPanel panel = new JPanel();
+			panel.add(text);
+			panel.add(button);
+
+			this.add(panel);
+			this.pack();
+			this.setVisible(true);
+
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			String string = text.getText();
+			Scanner scanner = new Scanner(string);
+			scanner.useDelimiter(", ");
+			CollisionAvoidance.Coordinate wp = new CollisionAvoidance.Coordinate();
+			try {
+				wp.x = (double) scanner.nextInt();
+				wp.y = (double) scanner.nextInt();
+				wp.z = (double) scanner.nextInt();
+			}
+			catch (InputMismatchException e) {
+				log.error("input mismatch exception caught");
+				return;
+			}
+			catch (NoSuchElementException e) {
+				log.error("3D point not typed in");
+				return;
+			}
+			log.info("GUI has initiated transmit of " + wp);
+			ca.transmit(ca.latest, wp);
+		}
+
+	}
+
+	private class GCSPacketListener implements PacketListener {
 
 		// keep track of time between packets
 		private long next;
 		private long prev;
-		
+
 		// receive packet and add the parsed data from it to the CA object's hash map
 		@Override
 		public void processResponse(XBeeResponse response) {
 			if (response.getApiId() == ApiId.ZNET_RX_RESPONSE) {
 				ZNetRxResponse rx = (ZNetRxResponse) response;
-				
+
 				log.debug("Received RX packet, option is " + rx.getOption() + 
 						", sender 64 address is " + ByteUtils.toBase16(rx.getRemoteAddress64().getAddress()) + 
 						", remote 16-bit address is " + ByteUtils.toBase16(rx.getRemoteAddress16().getAddress()) + 
 						", data is " + ByteUtils.toBase16(rx.getData()));
-			
+
 				ca.addData(rx.getRemoteAddress64(), packetParser(rx));
 			}
 		}
-		
+
 		// parse packet payload and calculate communication
 		// return null if not a PlaneData packet
 		private PlaneData packetParser(ZNetRxResponse response) {
 			next = System.currentTimeMillis();
 			log.debug("Time elapsed is " + (next-prev)+"ms, response length is "+response.getData().length);
 			prev = next;	
-			
+
 			// If response isn't a telemetry packet that we sent, just print it out
 			if (response.getData().length != 40) {
 				StringBuffer sb = new StringBuffer();
@@ -76,7 +138,7 @@ public class XBeeGCS {
 				log.info(sb.toString());
 				return null;
 			}
-			
+
 			// flip data in packet to little endian and store it in an int array
 			int planeDataArray[] = new int[10];
 			byte data[] = new byte[response.getData().length];
@@ -89,7 +151,7 @@ public class XBeeGCS {
 				bb.order(ByteOrder.LITTLE_ENDIAN);
 				planeDataArray[i / 4] = bb.getInt(0);
 			}
-			
+
 			// store data in new PlaneData object
 			PlaneData pd = new PlaneData();
 			pd.currLat = planeDataArray[0];
@@ -102,12 +164,10 @@ public class XBeeGCS {
 			pd.target_bearing = planeDataArray[7];
 			pd.currWP = planeDataArray[8];
 			pd.WPdistance = planeDataArray[9];
-						
+
 			return pd;
 		}
 	}
 
 
 }
-
-

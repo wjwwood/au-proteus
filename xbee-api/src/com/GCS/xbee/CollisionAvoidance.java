@@ -17,7 +17,7 @@ public class CollisionAvoidance {
 	private static XBee xbee;
 	private static Logger log;
 	private HashMap<XBeeAddress64, PlaneData> dataMap;
-	private XBeeAddress64 latest;
+	XBeeAddress64 latest;
 	private int planeCounter;
 	
 	public CollisionAvoidance(XBee xbee, Logger log) {
@@ -46,8 +46,7 @@ public class CollisionAvoidance {
 		}
 	}
 	
-	// Assume data has 3 fields: latitude, longitude, and altitude
-	private void transmit(XBeeAddress64 addr, Coordinate wp) {
+	void transmit(XBeeAddress64 addr, Coordinate wp) {
 		int waypoint[] = new int[3];
 		int payload[] = new int[16];	//4 int32's
 		
@@ -91,10 +90,12 @@ public class CollisionAvoidance {
 		log.info("sent " + Arrays.toString(waypoint) + " to Plane " + dataMap.get(addr).num);
 	}
 
-	private class Coordinate {
+	public static class Coordinate {
 		double x;
 		double y;
 		double z;
+		
+		public String toString() { return "<" + x + "," + y + "," + z + ">"; }
 	}
 
 	// thread that runs collision avoidance algorithm
@@ -117,7 +118,7 @@ public class CollisionAvoidance {
 					for (PlaneData active : dataMap.values()) {
 						if (active != plane) {
 							Coordinate repulse = forceRepulsive(plane, active);
-							log.debug("The repulsive force vector is: <" + repulse.x + "," + repulse.y + ">");
+							log.debug("The repulsive force vector is: " + repulse);
 							sumRepulsive.x += repulse.x;
 							sumRepulsive.y += repulse.y;
 						}
@@ -131,7 +132,7 @@ public class CollisionAvoidance {
 					resultant.x = sumRepulsive.x + attract.x;
 					resultant.y = sumRepulsive.y + attract.y;
 
-					log.debug("The resultant force vector is: <" + resultant.x + "," + resultant.y + ">");
+					log.debug("The resultant force vector is: <" + resultant);
 
 					// add the resultant force to the current waypoint to get the intermediate point
 					Coordinate newWP = new Coordinate();
