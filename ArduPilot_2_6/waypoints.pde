@@ -79,6 +79,7 @@ void reached_waypoint()
 		// -------------------------------------
 		waypoint_event(EVENT_SET_NEW_WAYPOINT_INDEX);
 		
+		// XXX: mod to remove arbitrary waypoint
 		fakeWP = false;
 
 		// load next WP
@@ -272,7 +273,7 @@ void precalc_waypoint_distance(void)
 	// this is used to offset the shrinking longitude as we go towards the poles	
 	float rads = (abs(next_WP.lat)/t7) * 0.0174532925;
 	//377,173,810 / 10,000,000 = 37.717381 * 0.0174532925 = 0.658292482926943		
-	scaleLongDown = cos(rads);
+	//scaleLongDown = cos(rads);
 	scaleLongUp = 1.0f/cos(rads);
 
 	// set a new crosstrack bearing
@@ -282,6 +283,9 @@ void precalc_waypoint_distance(void)
 	// output the new WP information to the Ground Station
 	// ---------------------------------------------------
 	print_current_waypoint();
+	#if GCS_PROTOCOL == 5
+	print_new_wp_info();
+	#endif
 }
 
 void reset_crosstrack()
@@ -301,6 +305,12 @@ void reset_waypoint_index(void){
 // -------------------------------------
 void load_waypoint(struct Location *wp)
 {
+	// flush our temp waypoint if receiving a {0,0,0}
+	if (wp->lat == 0 && wp->lng == 0 && wp->alt == 0) {
+		reached_waypoint();
+		return;
+	}
+		
 	// copy the current WP into the OldWP slot
 	// ---------------------------------------
 	prev_WP = current_loc;

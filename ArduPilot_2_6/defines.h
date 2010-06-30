@@ -21,14 +21,14 @@
 // Auto Pilot modes
 // ----------------
 #define MANUAL 0
-#define STABILIZE 1
-#define FLY_BY_WIRE_A 2    // Fly By Wire A has left stick horizontal => desired roll angle, left stick vertical => desired pitch angle, right stick vertical = manual throttle
-#define FLY_BY_WIRE_B 3    // Fly By Wire B has left stick horizontal => desired roll angle, left stick vertical => desired pitch angle, right stick vertical => desired airspeed
+#define CIRCLE 1		   // When flying sans GPS, and we loose the radio, just circle
+#define STABILIZE 2
+#define FLY_BY_WIRE_A 3    // Fly By Wire A has left stick horizontal => desired roll angle, left stick vertical => desired pitch angle, right stick vertical = manual throttle
+#define FLY_BY_WIRE_B 4    // Fly By Wire B has left stick horizontal => desired roll angle, left stick vertical => desired pitch angle, right stick vertical => desired airspeed
                            // Fly By Wire B = Fly By Wire A if you have AIRSPEED_SENSOR 0
-#define CIRCLE 4		   // When flying sans GPS, and we loose the radio, just circle
-#define AUTO 5
-#define RTL 6
-#define LOITER 7
+#define AUTO 6
+#define RTL 7
+#define LOITER 8
 
 // Waypoint Modes
 // ----------------

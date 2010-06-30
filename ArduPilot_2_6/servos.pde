@@ -2,9 +2,9 @@
 // ------------------------------------------------
 void demo_servos()
 {
-        int temp = servo_throttle;
-        servo_throttle = 0;
-        update_throttle();
+	int temp = servo_throttle;
+	servo_throttle = 0;
+	update_throttle();
 	set_servo_mux(true);
 	OCR1A = 1600 * 2;
 	OCR1B = 1600 * 2;
@@ -15,8 +15,8 @@ void demo_servos()
 	OCR1A = 1500 * 2;
 	OCR1B = 1500 * 2;
 	set_servo_mux(false);
-        servo_throttle = temp;
-        update_throttle();
+	servo_throttle = temp;
+	update_throttle();
 
 }
 
@@ -85,23 +85,17 @@ void update_throttle()
 #if THROTTLE_OUT == 0
 	servo_throttle = 0;
 #else
-	if (control_mode > STABILIZE){
+	if (control_mode > FLY_BY_WIRE_B){
 		servo_throttle = constrain(servo_throttle, 0, THROTTLE_MAX);
+	}else{
+		servo_throttle = constrain(servo_throttle, 0, 125);
 	}
 #endif
 
-#if REVERSE_THROTTLE == 0
 	int temp = servo_throttle + 125 + ch3_timer_trim;
-	temp = constrain(temp, 120, 250);
+	temp = constrain(temp, ch3_min, 250);
 	OCR2A = temp;
-#endif
-
-#if REVERSE_THROTTLE == 1
-	int temp = 125 + (125 - servo_throttle) + ch3_timer_trim;
-	temp = constrain(temp, 120, 250);
-	OCR2A = temp;
-#endif
-
+	
 	// output for the groundstation
 	// ----------------------------
 	ch3_out = temp * 8;
@@ -139,7 +133,8 @@ void init_PWM()
 	//Setting up the Timer 2 - 8 bit timer
 	TCCR2A 	= _BV(WGM21); //CTC mode 
 	TCCR2B 	= _BV(CS20)|_BV(CS22); //prescaler 128, at 16mhz (128/16) = 8, the counter will increment 1 every 8us
-	OCR2A 	= 125 + ch3_timer_trim; //1500us/8; The top, when the counter reaches the value definied here will execute the interrupt, 187 is the servo centered... 
+	ch3_min = 125 + ch3_timer_trim;
+	OCR2A 	= ch3_min; //1500us/8; The top, when the counter reaches the value definied here will execute the interrupt, 187 is the servo centered... 
 	TIMSK1 |= _BV(ICIE1); 	// Timer/Counter1, Input Capture Interrupt Enable //PB0 - output throttle
 	TIMSK2 	= _BV(OCIE2A);	// Timer/Counter2 Compare Match A
 }

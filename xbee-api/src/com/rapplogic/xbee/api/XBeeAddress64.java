@@ -99,6 +99,15 @@ public class XBeeAddress64 extends XBeeAddress  {
 		this.address = address;
 	}
 	
+	@Override
+	public int hashCode() {
+		int val = 0;
+		for (int i = 0; i < 4; i++) {
+			val |= address[i] << (i * 8);
+		}
+		return val;
+	}
+	
 	public boolean equals(Object o) {
 		
 		if (this == o) {

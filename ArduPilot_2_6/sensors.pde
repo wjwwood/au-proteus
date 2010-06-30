@@ -1,60 +1,47 @@
-#if GPS_PROTOCOL != 5
-void read_analogs()
+
+void read_XY_sensors()
 {
-	#if GPS_PROTOCOL != 3
-		analog0 = analogRead(0);
-		analog1 = analogRead(1);
-		roll_sensor  = getRoll() + ROLL_TRIM;
-		pitch_sensor = getPitch() + PITCH_TRIM;
-	
-		#if ENABLE_Z_SENSOR == 0
-			if (analog0 > 511){
-				ir_max = max((abs(511 - analog0) * IR_MAX_FIX), ir_max);
-				ir_max = constrain(ir_max, 40, 600);
-			}
-		#endif	
-		#if ENABLE_Z_SENSOR == 1	
-			//Checks if the roll is less than 10 degrees to read z sensor
-			if(abs(roll_sensor) <= 1000){
-				analog2 = ((float)analogRead(2) * 0.10) + ((float)analog2 * .90);
-				ir_max = abs(511 - analog2) * IR_MAX_FIX;
-				ir_max = constrain(ir_max, 40, 600);
-			}
-		#endif
-	#endif
-	
-	// Read Airspeed
-	#if AIRSPEED_SENSOR == 1
-		analog3 = ((float)analogRead(3) * .10) + (analog3 * .90);
-		airspeed_current = (int)analog3 - airspeed_offset;
-	#endif
+	analog0 = analogRead(0);
+	analog1 = analogRead(1);
+	roll_sensor  = getRoll() + ROLL_TRIM;
+	pitch_sensor = getPitch() + PITCH_TRIM;
 
-	#if BATTERY_EVENT == 1
-		analog5 = ((float)analogRead(5)*.01) + ((float)analog5*.99);
-		battery_voltage = BATTERY_VOLTAGE(analog5);
-		if(battery_voltage < INPUT_VOLTAGE)
-			low_battery_event();
-	#endif
-	
+	#if ENABLE_Z_SENSOR == 0
+		if (analog0 > 511){
+			ir_max = max((abs(511 - analog0) * IR_MAX_FIX), ir_max);
+			ir_max = constrain(ir_max, 40, 600);
+			if(ir_max > ir_max_save){
+				eeprom_busy_wait();
+				eeprom_write_word((uint16_t *)	0x3E4, ir_max);	// ir_max 
+				ir_max_save = ir_max;
+			}
+		}
+	#endif	
 }
-#endif
 
-#if GPS_PROTOCOL == 5
-void read_analogs()
+void read_z_sensor(void)
 {
-	
-	roll_sensor = ((float)roll_sensor *.8f) + ((float)nav_roll *.2f);
-	pitch_sensor = ((float)pitch_sensor *.8f) + ((float)nav_pitch *.2f);
-	
-#if THROTTLE_OUT == 0
-	servo_throttle = throttle_cruise;
-#endif
-	airspeed_current = throttle_cruise + ((float)airspeed_current *.9f) + ((float)servo_throttle *.1f);
-	airspeed_current = constrain(airspeed_current, 0, THROTTLE_MAX);
+	//Checks if the roll is less than 10 degrees to read z sensor
+	if(abs(roll_sensor) <= 1000){
+		analog2 = ((float)analogRead(2) * 0.10) + ((float)analog2 * .90);
+		ir_max = abs(511 - analog2) * IR_MAX_FIX;
+		ir_max = constrain(ir_max, 40, 600);
+	}
 }
-#endif
 
+void read_airspeed(void)
+{
+	analog3 = ((float)analogRead(3) * .10) + (analog3 * .90);
+	airspeed_current = (int)analog3 - airspeed_offset;
+}
 
+void read_battery(void)
+{
+	analog5 = ((float)analogRead(5)*.01) + ((float)analog5*.99);
+	battery_voltage = BATTERY_VOLTAGE(analog5);
+	if(battery_voltage < INPUT_VOLTAGE)
+		low_battery_event();
+}
 
 
 // returns the sensor values as degrees of roll

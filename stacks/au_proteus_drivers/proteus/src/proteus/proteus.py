@@ -31,18 +31,22 @@ OP_STOP         = '\x66' # f
 OP_DRIVE        = '\x67' # g
 OP_SAFE_MODE    = '\x64' # d
 OP_SENSOR       = '\x69' # i
+OP_LEDS			= '\x68' # h
+OP_FULL_MODE    = '\x65' # e
 
 SENSOR_ODOM     = '\x01' # b00000001
 SENSOR_IR       = '\x02' # b00000010
+SENSOR_SERVO    = '\x06' # b00000110
 
 START_CMD     = CMD_START+OP_START+CMD_STOP
 STOP_CMD      = CMD_START+OP_STOP+CMD_STOP
 SAFE_MODE_CMD = CMD_START+OP_SAFE_MODE+CMD_STOP
+FULL_MODE_CMD = CMD_START+OP_FULL_MODE+CMD_STOP
 
 # Log system, this should be overriden with something like rospy.loginfo or rospy.logerr
 #  I do this in an effort to remove all ros dependant code from this file
-info = lambda x: print x
-logerr = lambda x: print >> sys.stderr, x
+# info = lambda x: print x
+# logerr = lambda x: print >> sys.stderr, x
 
 ###  Classes  ###
 class Proteus(object):
@@ -57,6 +61,7 @@ class Proteus(object):
         self.serial = Serial()
         self.serial.port = self.serial_port
         self.serial.baudrate = 57600
+        self.serial.timeout = 1
         self.serial.open()
         
         # Setup some variables
@@ -66,6 +71,9 @@ class Proteus(object):
         
         self.onOdomData = None
         self.odom_timer = None
+        
+        self.servo_timer = None
+        self.onServoData = None
         
         self.onIRSensorData = None
         self.ir_timer = None
@@ -160,7 +168,27 @@ class Proteus(object):
             self.serial.write(SAFE_MODE_CMD)
         else:
             logerr('Error: Serial port not open')
-    
+			
+    def safe(self):
+        """Sets the proteus in safe mode, making sure that drive commands come regularly"""
+        
+        if self.started == False:
+            print "Start the Proteus and try again."
+        elif self.serial.isOpen():
+            self.serial.write(SAFE_MODE_CMD)
+        else:
+            logerr('Error: Serial port not open')
+            
+    def full(self):
+        """Sets the proteus in full mode, the motor might get stuck on."""
+        
+        if self.started == False:
+            print "Start the Proteus and try again."
+        elif self.serial.isOpen():
+            self.serial.write(FULL_MODE_CMD)
+        else:
+            logerr('Error: Serial port not open')
+
     def stop(self):
         """Sets the proteus into stop mode cleans up, joins threads"""
         self.move(0,0) # Stop the motors
@@ -173,7 +201,39 @@ class Proteus(object):
         else:
             logerr('Error: Serial port not open')
         # Join Threads
+		
+    def led(self, which):
+        if which < 0:
+            temp = abs(int(which))
+            temp = temp - 1
+            temp = ~temp
+            temp = 0x80 | temp
+        else:
+            temp = which		
+        cmd = ""
+        cmd += CMD_START
+        cmd += OP_LEDS
+        cmd += chr(temp & 0xFF)
+        cmd += CMD_STOP
+        if self.serial.isOpen():
+            self.serial.write(cmd)
+        else:
+            logerr('Error: Serial port not open')
         
+    def pollServo(self):
+        cmd = ""
+        cmd += CMD_START
+        cmd += OP_SENSOR
+        cmd += SENSOR_SERVO
+        cmd += CMD_STOP
+        if self.serial.isOpen():
+            self.serial.write(cmd)
+        else:
+            logerr('Error: Serial port not open')
+        data = self.serial.read(2)
+        data = data.encode("HEX")
+        servo_data = int(data[0:4], 16)
+        print servo_data
     
     def move(self, speed, direction):
         """Translates speed and direction into commands the proteus understands and sends them"""
@@ -196,7 +256,7 @@ class Proteus(object):
         elif direction < -1.0:
             direction = -1.0
         if direction < 0:
-            direction = 300 - direction*60 # direction should be negative so you're actually adding to 300
+            direction = 360 + direction*60 # direction should be negative
         else:
             direction *= 60
         direction = math.radians(direction)
@@ -215,4 +275,16 @@ class Proteus(object):
         # Send the command
         if self.serial.isOpen():
             self.serial.write(cmd)
-    
+
+running = True
+def readSerial(serial):
+	while running:
+		temp = serial.readline()
+		if temp != "":
+			print temp
+	print "Read Serial Done"
+p = None			
+if __name__ == "__main__":
+	p = Proteus("COM3")
+	import thread
+	thread.start_new_thread(readSerial, (p.serial,))

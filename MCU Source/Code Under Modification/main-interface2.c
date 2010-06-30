@@ -1,6 +1,7 @@
 //main-interface2.c
 //Main for Proteus serial interface to Player.
 //Written by Paine {n.a.paine@gmail.com}
+//Modified by Justin Paladino {PaladinoJ@gmail.com}
 
 #include <hidef.h>           /* common defines and macros */
 #include <mc9s12dp512.h>     /* derivative information */
@@ -18,6 +19,10 @@
 
 #pragma LINK_INFO DERIVATIVE "mc9s12dp512"
 
+unsigned char on;
+unsigned char ol;
+void blinkOnLED(void);
+
 void main(void) {
   PLL_Init();   // Eclk @ 24MHz
   Timer_Init(); // TCNT @ 333.3ns, TOF @ 21.84ms
@@ -29,14 +34,15 @@ void main(void) {
   Servo_Init(); 
   Tach_Init();  //tachometer init
   MC_Init(); //motor control init
-  ADC0_Init();  //IR sensors
+  ADC0_Init();  //IR sensors, Servo Potentiometer
+  ADC1_Init();  //Extra IR sensors
   Compass_Init();
   
   asm cli  //enable interrupts
   
-  LED_BLUE1 = 1;
+  on = Scheduler_AddEvent_hz(&blinkOnLED,1);
   
-  SCI_OutString(SCI_X86, "Proteus SCI: Ready...waiting for input"); 
+  SCI_OutString(SCI_X86, "AU-Proteus SCI: Ready...waiting for input"); 
   SCI_OutCRLF(SCI_X86);
   
   for(;;){ //foreground loop
@@ -49,6 +55,15 @@ void main(void) {
   } 
 }
 
-
+void blinkOnLED(){
+    if(ol > 0){
+        LED_BLUE1 = 0;
+        ol = 0;
+    }
+    else {
+        LED_BLUE1 = 1;
+        ol = 1;
+    }
+}
 
 

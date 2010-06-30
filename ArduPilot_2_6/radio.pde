@@ -22,10 +22,12 @@ void read_radio()
 		// if you change the filter value, remember timer1diff is double the servo value
 		// so instead of .2, we use .1, 
 		// .9 and .05 are valid for example
+		timer1diff -= 46;
 		ch1_temp = (float)ch1_temp *.8  + (float)timer1diff *.1;
 	}
 	
 	if(timer2diff > 1700 && timer2diff < 4000){
+		timer2diff -= 38;
 		ch2_temp = (float)ch2_temp *.8  + (float)timer2diff *.1;
 	}
 	
@@ -36,7 +38,6 @@ void read_radio()
 			ch3_in = (float)ch3_in *.9  + (3000 - (float)timer3diff *.05);
 		#endif
 	}
-  
 	#if MIXING_MODE == 0
 		ch1_in = ch1_temp;
 		ch2_in = ch2_temp;
@@ -51,7 +52,6 @@ void read_radio()
 		servo_throttle = (ch3_in - ch3_trim) *.125;
 		servo_throttle = constrain(servo_throttle, 0, 125);
 	#endif
-
 }
 
 #if RADIO_TYPE == 0
@@ -83,7 +83,11 @@ ISR(PCINT2_vect) {
 ISR(PCINT0_vect)
 {	
 	int cnt = TCNT1;
-	if(PINB & B00100000){
+#if THROTTLE_PIN == 11
+	if(PINB & 8){
+#else
+	if(PINB & 32){
+#endif
 		timer3count = cnt;
 	}else{	
 		if (cnt < timer3count)   // Timer1 reset during the read of this pulse
@@ -139,7 +143,11 @@ ISR(PCINT2_vect) {
 }
 ISR(PCINT0_vect) {
 	int cnt = TCNT1;
-	if( ch1_read && (!(PINB & B00100000)) ){
+#if THROTTLE_PIN == 11
+	if( ch1_read && (!(PINB & 8)) ){
+#else
+	if( ch1_read && (!(PINB & 32)) ){
+#endif
 		ch1_read=0;
 		if (cnt < timer1count)   // Timer1 reset during the read of this pulse
 		   timer3diff = (cnt + 40000 - timer1count);    // Timer1 TOP = 40000
@@ -163,30 +171,42 @@ void throttle_failsafe()
 			Serial.print("XXX \t FAILSAFE ON - ch3= ");
 			Serial.print(ch3_in,DEC);
 			Serial.println("\t ***");
-		}
-		if(failsafeCounter > 10) {
+		}else if(failsafeCounter == 10) {
 			set_failsafe(true);
-			failsafeCounter = 10;
+			//failsafeCounter = 10;
+		}else if (failsafeCounter > 10){
+			failsafeCounter = 11;
 		}
-		// set throttle cruise value
-		servo_throttle = THROTTLE_CRUISE;
+		
 	}else if(failsafeCounter > 0){
+		// we are no longer in failsafe condition
+		// but we need to recover quickly		
 		failsafeCounter--;
-		if (failsafeCounter == 0){
+		if (failsafeCounter > 3){
+			failsafeCounter = 3;
+		}		
+		if (failsafeCounter == 1){
 			Serial.print("XXX \t FAILSAFE OFF - ch3= ");
 			Serial.print(ch3_in,DEC);
 			Serial.println("\t ***");
-		}
-		if(failsafeCounter < 1) {
+		}else if(failsafeCounter == 0) {
 			set_failsafe(false);
-			failsafeCounter = 0;
+			//failsafeCounter = -1;
+		}else if (failsafeCounter <0){
+			failsafeCounter = -1;
 		}
 	}
 	#endif
 }
 
 void trim_radio()
-{	
+{
+	if (CH3_TRIM == 0){
+		// just a tweak so our initial read isn't too far off
+		// --------------------------------------------------
+		ch3_trim = 1000;
+	}
+
 	// wait until we see the radio
 	// ---------------------------
 	while(ch1_in < 900 && ch2_in < 900){
@@ -201,22 +221,26 @@ void trim_radio()
 		read_radio();
 	}
 	
-	// Store the trim values
-	// ---------------------
-	ch3_trim  = ch3_in;
-	ch3_fs = ch3_trim - 50;         // auto save FS
-        #if  MIXING_MODE == 1
-	      elevon1_trim = ch1_temp;
-	      elevon2_trim = ch2_temp;
-              //Recompute values here using new values for elevon1_trim and elevon2_trim 
-              //We cannot use ch1_in and ch2_in values from read_radio() because the elevon trim values have changed
-              ch1_trim = REVERSE_ELEVONS * (REVERSE_CH2_ELEVON*(ch2_temp-elevon2_trim) - REVERSE_CH1_ELEVON*(ch1_temp-elevon1_trim))/2 + 1500;
-	      ch2_trim = (REVERSE_CH2_ELEVON*(ch2_temp-elevon2_trim) + REVERSE_CH1_ELEVON*(ch1_temp-elevon1_trim))/2 + 1500;
-        #endif
-        #if MIXING_MODE == 0
-	      ch1_trim = ch1_in;
-	      ch2_trim = ch2_in;
-        #endif
+	// Store the throttle trim values
+	// ------------------------------
+	if (CH3_TRIM == 0){
+		ch3_trim  = ch3_in;
+	}
+	ch3_fs = ch3_trim - 50;  // auto save FS
+	// Store control surface trim values
+	// ---------------------------------
+	#if  MIXING_MODE == 1
+		elevon1_trim = ch1_temp;
+		elevon2_trim = ch2_temp;
+		//Recompute values here using new values for elevon1_trim and elevon2_trim 
+		//We cannot use ch1_in and ch2_in values from read_radio() because the elevon trim values have changed
+		ch1_trim = REVERSE_ELEVONS * (REVERSE_CH2_ELEVON*(ch2_temp-elevon2_trim) - REVERSE_CH1_ELEVON*(ch1_temp-elevon1_trim))/2 + 1500;
+		ch2_trim = (REVERSE_CH2_ELEVON*(ch2_temp-elevon2_trim) + REVERSE_CH1_ELEVON*(ch1_temp-elevon1_trim))/2 + 1500;
+	#endif
+	#if MIXING_MODE == 0
+		ch1_trim = ch1_in;
+		ch2_trim = ch2_in;
+	#endif
 
 	// Warn if we are out of range
 	// ---------------------------
@@ -261,7 +285,13 @@ void init_radio()
 {
 	#if THROTTLE_IN	== 1
 		// enable in change interrupt on PB5 (digital pin 13)
+		
+	#if THROTTLE_PIN == 11
+		PCMSK0 = _BV(PCINT3);
+	#else
 		PCMSK0 = _BV(PCINT5);
+	#endif
+
 	#endif
 	
 	// enable pin change interrupt on PD2,PD3 (digital pin 2,3)
@@ -275,7 +305,7 @@ void init_radio()
 		PCICR |= _BV(PCIE0);
 	#endif
 
-	for(int c=0; c < 10; c++){
+	for(int c=0; c < 30; c++){
 		delay(20);
 		read_radio();
 	}	
@@ -317,7 +347,10 @@ void read_radio_limits()
             }
               
 		delay(40);
-		read_analogs();
+		read_XY_sensors();
+		#if ENABLE_Z_SENSOR == 1
+		read_z_sensor();
+		#endif
 		read_radio();
 
 		// AutoSet servo limits

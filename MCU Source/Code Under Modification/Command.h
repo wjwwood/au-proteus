@@ -1,6 +1,7 @@
 //Command.h
 //Parameter declaration for Proteus SCI protocol
 //Written by Paine {n.a.paine@gmail.com}
+//Modified by Justin Paladino {PaladinoJ@gmail.com}
 
 /* Commands come over the serial port with the following structure
   {begin char} {opcode} {data 1} {data 2} ... {data N} {end char}
@@ -46,13 +47,15 @@ enum{
   PROTEUS_IR_PACKET,
   PROTEUS_SONAR_PACKET,
   PROTEUS_COMPASS_PACKET,
-  PROTEUS_OPAQUE_PACKET
+  PROTEUS_OPAQUE_PACKET,
+  PROTEUS_SERVO_PACKET
 };
 
 #define PROTEUS_ODOMETRY_PACKET_SIZE      5
-#define PROTEUS_IR_PACKET_SIZE           24  //12 if no extra IR needed/used
+#define PROTEUS_IR_PACKET_SIZE           12  //12 for standard 6 IR ... 28 if extra IR needed/used
 #define PROTEUS_SONAR_PACKET_SIZE        12
 #define PROTEUS_COMPASS_PACKET_SIZE       2
+#define PROTEUS_SERVO_PACKET_SIZE         2
 #define PROTEUS_OPAQUE_PACKET_SIZE        1
 #define PROTEUS_PACKET_OVERHEAD           2
 
