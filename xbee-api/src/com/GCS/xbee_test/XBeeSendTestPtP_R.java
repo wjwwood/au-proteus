@@ -24,13 +24,13 @@ public class XBeeSendTestPtP_R {
 		PropertyConfigurator.configure("log4j.properties");
 		xbee = new XBee();
 
-		int packetCount = 0;
+		int packetCount = 1;
 		int errorCount = 0;
 
 		try {
 			xbee.open("/dev/ttyUSB0", 115200);
 
-			while (packetCount < NUM_PACKETS) {
+			while (packetCount <= NUM_PACKETS) {
 				// receive packet and calculate single packet receive latency
 				long beforeReceive = System.nanoTime();
 				XBeeResponse resp = xbee.getResponse();
@@ -40,7 +40,7 @@ public class XBeeSendTestPtP_R {
 					log.info("Packet " + packetCount + ": Latency of " + latency/1000000 + " ms.");
 					// check for errors
 					ZNetRxResponse rx = (ZNetRxResponse) resp;
-					if (rx.getData().length == PKT_SIZE_INTS * 4) {
+					if (rx.getData().length == PKT_SIZE_INTS * 4) {	// to disregard other packets
 						errorCount += errorCheck(rx, packetCount);
 						packetCount++;
 					}

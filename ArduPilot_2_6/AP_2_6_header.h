@@ -37,7 +37,7 @@
 //0-8
 #define POSITION_1 MANUAL 
 //0-9 XXX
-#define POSITION_2 AUTO
+#define POSITION_2 STABILIZE
 //0-10 XXX
 #define POSITION_3 AUTO
 // So why isn't AUTO here by default? Well, please try and run Stabilize first, 

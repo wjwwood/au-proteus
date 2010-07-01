@@ -224,7 +224,7 @@ public class XBee extends RxTxSerialComm implements IXBee, XBeePacketHandler {
 			synchronized (sendPacketBlock) {
 				this.sendPacket(txPacket);	
 			}
-			
+
 			synchronized (responseList) {
 				try {
 					responseList.wait(timeout);
