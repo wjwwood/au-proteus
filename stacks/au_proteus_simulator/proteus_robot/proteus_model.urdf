@@ -1,0 +1,57 @@
+<robot name="object_model"
+       xmlns:controller="http://playerstage.sourceforge.net/gazebo/xmlschema/#controller"
+       xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface" >
+  <!-- urdf requires at least one joint and one link, so here's the joint -->
+  <joint name="my_mug_joint" type="floating" >
+    <!-- axis is in the parent link frame coordintates -->
+    <axis xyz="0 0 0" />
+    <parent link="world" />
+    <child link="object_link" />
+    <!-- initial pose of my_mug joint/link in the parent frame coordiantes -->
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </joint>
+  <!-- one floating link -->
+  <link name="object_link">
+    <inertial>
+      <mass value="0.1"/>
+      <origin xyz="0 0 0.0"/>
+      <inertia ixx="0.005" ixy="0" ixz="0" iyy="0.005" iyz="0" izz="0.005"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.0"/>
+      <geometry>
+        <box size="0.0428 0.0447 0.038"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.0"/>
+      <geometry>
+        <box size="0.0428 0.0447 0.038"/>
+      </geometry>
+    </collision>
+  </link>
+  <gazebo reference="object_link">
+    <material>Gazebo/Black</material>
+    <mu1>50000.0</mu1>
+    <mu2>50000.0</mu2>
+    <kp>100000000.0</kp>
+    <kd>1.0</kd>
+    <turnGravityOff>true</turnGravityOff>
+    <dampingFactor>0.01</dampingFactor>
+  </gazebo>
+  <gazebo>
+    <!-- plugin for setting object pose -->
+    <controller:gazebo_ros_sim_iface name="sim_iface_object_controller" plugin="libgazebo_ros_sim_iface.so">
+      <alwaysOn>true</alwaysOn>
+      <updateRate>1.0</updateRate>
+      <modelName>object_model</modelName>
+      <topicName>set_object_pose_topic</topicName>
+      <frameName>map</frameName>
+      <xyz>0 0 0</xyz>
+      <rpy>0 0 0</rpy>
+      <vel>0 0 0</vel>
+      <angVel>0 0 0</angVel>
+      <interface:position name="sim_iface_object_position"/>
+    </controller:gazebo_ros_sim_iface>
+  </gazebo>
+</robot>

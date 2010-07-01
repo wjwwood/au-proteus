@@ -59,6 +59,9 @@ public class XBeeGCS {
 		}
 		
 		private static PlaneData packetParser(ZNetRxResponse response) {
+			
+			if (response.getData().length != 44) return null;
+			
 			int planeDataArray[] = new int[11];
 			byte data[] = new byte[response.getData().length];
 			
