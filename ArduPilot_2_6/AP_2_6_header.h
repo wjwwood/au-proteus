@@ -2,19 +2,20 @@
  /*  ArduPilot 2.6.2 Header file		*/
 /***************************************/
 
+// XXX comments mean code or values that are different from stock ArduPilot
+
 //HARDWARE CONFIGURATION
 //0-1
 #define SHIELD_VERSION 1		// Old (red) shield versions is 0, the new (blue) shield version is 1, -1 = no shield
-//0-2
-#define AIRSPEED_SENSOR 0 		// (boolean) Do you have an airspeed sensor attached? 1= yes, 0 = no.
-//0-3
+//0-2 XXX
+#define AIRSPEED_SENSOR 1 		// (boolean) Do you have an airspeed sensor attached? 1= yes, 0 = no.
+//0-3 XXX
 #define GPS_PROTOCOL 1			// 0 = NMEA, 1=SIRF, 2=uBlox, 3 = ArduIMU, 4 = MediaTek, 5 = Simulated GPS mode (Debug), -1 = no GPS
-//0-4 Ground Control Station:
-// XXX: XBee GCS in effect
+//0-4 Ground Control Station: XXX
 #define GCS_PROTOCOL 6			// 0 = Standard ArduPilot (LabVIEW/HappyKillmore), 1 = special test, 2 = Ardupilot Binary(not implemented), 5 = Jason's GCS, -1 = no GCS (no telemtry output), 6 = XBeeGCS
 
 //0-5 and 0-6 are for use with Thermopile sensors
-//0-5
+//0-5 XXX
 #define ENABLE_Z_SENSOR 1  		// 0 = no Z sensor, 1 = use Z sensor (no Z requires field calibration with each flight)
 //0-6
 #define XY_SENSOR_LOCATION 0 	//XY Thermopiles Sensor placement
@@ -35,10 +36,9 @@
 // options are MANUAL, STABILIZE, FLY_BY_WIRE_A, FLY_BY_WIRE_B, AUTO, RTL, LOITER
 //0-8
 #define POSITION_1 MANUAL 
-//0-9
-// XXX
+//0-9 XXX
 #define POSITION_2 AUTO
-//0-10
+//0-10 XXX
 #define POSITION_3 AUTO
 // So why isn't AUTO here by default? Well, please try and run Stabilize first, 
 // then FLY_BY_WIRE_A to verify you have good gains set up correctly 
@@ -145,7 +145,7 @@
 #define XTRACK_ENTRY_ANGLE 3000		// Max angle used to correct for track following	degrees*100
 //4-5
 #define LOITER_RADIUS 40 			// radius in meters of a Loiter
-//4-6
+//4-6 XXX
 #define REMEMBER_LAST_WAYPOINT_MODE 1 	//	If set 1 = will remember the last waypoint even if you restart the autopilot. 
 										// 	0 = Will start from WP 1 (not 0) every time you switch into AUTO mode. 
 //4-7
@@ -274,7 +274,7 @@
 #define CLIMBRATE_DOWN 3000 // (meters * 100) how fast we climb in simulator at 90° 
 
 /***************/
-/* Stuff added for XBee 2-way telemetry */
+/* XXX Stuff added for XBee 2-way telemetry XXX */
 /***************/
 #define XBEE_BAUD_RATE  57600
 #define XBEE_TX_PIN 18

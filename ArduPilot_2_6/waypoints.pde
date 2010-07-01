@@ -301,7 +301,7 @@ void reset_waypoint_index(void){
 void load_waypoint(struct Location *wp)
 {
 	// flush our temp waypoint if receiving a {1,2,3}
-	if (wp->lat == 1L && wp->lng == 2L && wp->alt == 3L) {
+	if (wp->lat == 10000000L && wp->lng == 20000000L && wp->alt == 300L) {
 		Serial.println("Flushing arb. waypoint");
 		reached_waypoint();
 		return;
