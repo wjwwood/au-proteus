@@ -5,7 +5,11 @@ void read_XY_sensors()
 	analog1 = analogRead(1);
 	roll_sensor  = getRoll() + ROLL_TRIM;
 	pitch_sensor = getPitch() + PITCH_TRIM;
-
+	
+	//roll_sensor = ((ch2_in - ch2_trim) * 6000) / 400;
+	//Serial.print("roll_sensor");
+	//Serial.println(roll_sensor,DEC);
+	
 	#if ENABLE_Z_SENSOR == 0
 		if (analog0 > 511){
 			ir_max = max((abs(511 - analog0) * IR_MAX_FIX), ir_max);
@@ -32,7 +36,7 @@ void read_z_sensor(void)
 void read_airspeed(void)
 {
 	analog3 = ((float)analogRead(3) * .10) + (analog3 * .90);
-	airspeed_current = (int)analog3 - airspeed_offset;
+	airspeed_current = abs((int)analog3) - airspeed_offset;
 }
 
 void read_battery(void)

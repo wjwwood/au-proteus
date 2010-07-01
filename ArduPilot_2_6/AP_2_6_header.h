@@ -1,5 +1,5 @@
   /***************************************/
- /*ArduPilot 2.6.1 Header file*/
+ /*  ArduPilot 2.6.2 Header file		*/
 /***************************************/
 
 //HARDWARE CONFIGURATION
@@ -8,14 +8,14 @@
 //0-2
 #define AIRSPEED_SENSOR 0 		// (boolean) Do you have an airspeed sensor attached? 1= yes, 0 = no.
 //0-3
-#define GPS_PROTOCOL 1			// 0 = NMEA, 1=SIRF, 2=uBlox, 3 = ArduIMU, 5 = Simulated GPS mode (Debug), -1 = no GPS
+#define GPS_PROTOCOL 4			// 0 = NMEA, 1=SIRF, 2=uBlox, 3 = ArduIMU, 4 = MediaTek, 5 = Simulated GPS mode (Debug), -1 = no GPS
 //0-4 Ground Control Station:
 // XXX: XBee GCS in effect
 #define GCS_PROTOCOL 6			// 0 = Standard ArduPilot (LabVIEW/HappyKillmore), 1 = special test, 2 = Ardupilot Binary(not implemented), 5 = Jason's GCS, -1 = no GCS (no telemtry output), 6 = XBeeGCS
 
 //0-5 and 0-6 are for use with Thermopile sensors
 //0-5
-#define ENABLE_Z_SENSOR 0  		// 0 = no Z sensor, 1 = use Z sensor (no Z requires field calibration with each flight)
+#define ENABLE_Z_SENSOR 1  		// 0 = no Z sensor, 1 = use Z sensor (no Z requires field calibration with each flight)
 //0-6
 #define XY_SENSOR_LOCATION 0 	//XY Thermopiles Sensor placement
 //Mounted right side up: 		0 = cable in front, 1 = cable behind
@@ -37,7 +37,7 @@
 #define POSITION_1 MANUAL 
 //0-9
 // XXX
-#define POSITION_2 AUTO
+#define POSITION_2 AUTO 
 //0-10
 #define POSITION_3 AUTO
 // So why isn't AUTO here by default? Well, please try and run Stabilize first, 
@@ -70,9 +70,9 @@
 #define REVERSE_THROTTLE 0		// 0 = Normal mode. 1 = Reverse mode - Try and reverse throttle direction on your radio first, most ESC use low values for low throttle.
 
 //1-8
-#define PITCH_TRIM 0			//(Degrees +- 5) allows you to offset bad IR sensor placement
+#define PITCH_TRIM 0			//(Degrees * 100) allows you to offset bad IR sensor placement
 //1-9
-#define ROLL_TRIM 0				// (Degrees +- 5) allows you to offset bad IR sensor placement
+#define ROLL_TRIM 0				// (Degrees * 100) allows you to offset bad IR sensor placement
 
 
 /***************************************/
@@ -109,8 +109,9 @@
 /***************************************/
 // RADIO
 //3-1
-#define SET_RADIO_LIMITS 0	// 0 = no, 1 = set the limits of the Channels with the radio at launch each time; see manual for more
+#define AUTO_TRIM 1			// 0 = no, 1 = set the trim of the radio when switching from Manual
 //3-2
+#define SET_RADIO_LIMITS 0	// 0 = no, 1 = set the limits of the Channels with the radio at launch each time; see manual for more
 //3-3
 #define RADIO_TYPE 0 		// 0 = sequential PWM pulses, 1 = simultaneous PWM pulses
 //3-4
@@ -121,11 +122,11 @@
 #define CH2_MIN 1000 		// (Microseconds) Range of Elevator
 //3-7
 #define CH2_MAX 2000 		// (Microseconds)
-//3-8
 // If you want to set this value at each startup use 0, otherwise set a PWM value 
 // Ch3 is the throttle, which rarely needs to be set more than once.
 // Use the radio tester to find the PWM values that work for you.
 // if your prop spins up during startup for a brief moment, you may want to set your value permanently
+//3-8
 #define CH3_TRIM 0 		// PMW value = set (Microseconds)
 
 
@@ -145,7 +146,7 @@
 //4-5
 #define LOITER_RADIUS 40 			// radius in meters of a Loiter
 //4-6
-#define REMEMBER_LAST_WAYPOINT_MODE 0 	//	If set 1 = will remember the last waypoint even if you restart the autopilot. 
+#define REMEMBER_LAST_WAYPOINT_MODE 1 	//	If set 1 = will remember the last waypoint even if you restart the autopilot. 
 										// 	0 = Will start from WP 1 (not 0) every time you switch into AUTO mode. 
 //4-7
 #define WP_ALTITUDE_RADIUS 10 		// (meters) accuracy needed to find our waypoint in meters   [not implemented]
@@ -271,7 +272,6 @@
 #define CLIMBRATE_UP 1000 // (meters * 100) how fast we climb in simulator at 90° 
 //12-3
 #define CLIMBRATE_DOWN 3000 // (meters * 100) how fast we climb in simulator at 90° 
-
 
 /***************/
 /* Stuff added for XBee 2-way telemetry */

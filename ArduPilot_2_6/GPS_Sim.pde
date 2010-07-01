@@ -28,7 +28,7 @@ void decode_gps(void)
 	
 	//testing 1hz simulation
 	if((millis() - GPS_timer) > 200) {
-		readCommands();
+		//readCommands();
 		
 		// groundspeed from GPS
 		// --------------------
@@ -70,16 +70,12 @@ void decode_gps(void)
 
 
 		if(GPS_fix == VALID_GPS){
-			GPS_timer = millis(); //Restarting timer...
-			digitalWrite(12,HIGH);
+			GPS_timer = DIYmillis(); //Restarting timer...
 			GPS_update 				= GPS_BOTH;	
 			print_telemetry			= true;
-		}else{
-			digitalWrite(12,LOW);
 		}
 		
 		if((millis() - GPS_timer) > 2000){
-			digitalWrite(12, LOW);	//If we don't receive any byte in two seconds turn off gps fix LED... 
 			if(GPS_fix != FAILED_GPS){
 				GPS_fix = BAD_GPS;
 			}

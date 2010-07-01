@@ -90,20 +90,16 @@ void init_ardupilot()
 	// ---------------------------
 	reset_control_switch();
 
-	// Load the first waypoint
-	// ----------------------
-	load_waypoint();
-
-	// Makes the servos wiggle
-	// -----------------------
-	//demo_servos();
-
 	if(startup_check()){
 		Serial.println("Startup: Ground");
 		startup_ground();
 	}else{
 		Serial.println("Startup: AIR");
 		takeoffComplete = 1;
+		
+		// Load the first waypoint
+		// ----------------------
+		load_waypoint();
 	}
 }
 
@@ -143,8 +139,8 @@ void startup_ground(void)
 	// -----------------------
 	demo_servos();
 
-	// set a reasonable ir_max val
-	// ---------------------------
+	// set a default reasonable ir_max val
+	// -----------------------------------
 	ir_max = 150;
 	
 	// this is a ground start - reset home location
@@ -259,6 +255,8 @@ void restore_EEPROM(void)
 	ch3_timer_trim = constrain(ch3_timer_trim, -15, 125);
 	ch3_fs  = ch3_trim - 50;
 
+	wp_radius = constrain(wp_radius, 	10, 	40);
+
 	ch1_min = constrain(ch1_min, 	950, 	2050);
 	ch1_max = constrain(ch1_max, 	950, 	2050);
 	ch2_min = constrain(ch2_min, 	950, 	2050);
@@ -309,6 +307,11 @@ void check_eeprom_defaults(void)
 
 void set_mode(byte mode)
 {
+	#if (AUTO_TRIM == 1)
+		if(control_mode == MANUAL) 
+			trim_control_surfaces();
+	#endif
+	
 	control_mode = mode;
 		
 	switch(control_mode)
