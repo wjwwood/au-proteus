@@ -8,7 +8,7 @@
 //0-2
 #define AIRSPEED_SENSOR 0 		// (boolean) Do you have an airspeed sensor attached? 1= yes, 0 = no.
 //0-3
-#define GPS_PROTOCOL 4			// 0 = NMEA, 1=SIRF, 2=uBlox, 3 = ArduIMU, 4 = MediaTek, 5 = Simulated GPS mode (Debug), -1 = no GPS
+#define GPS_PROTOCOL 1			// 0 = NMEA, 1=SIRF, 2=uBlox, 3 = ArduIMU, 4 = MediaTek, 5 = Simulated GPS mode (Debug), -1 = no GPS
 //0-4 Ground Control Station:
 // XXX: XBee GCS in effect
 #define GCS_PROTOCOL 6			// 0 = Standard ArduPilot (LabVIEW/HappyKillmore), 1 = special test, 2 = Ardupilot Binary(not implemented), 5 = Jason's GCS, -1 = no GCS (no telemtry output), 6 = XBeeGCS
@@ -37,7 +37,7 @@
 #define POSITION_1 MANUAL 
 //0-9
 // XXX
-#define POSITION_2 AUTO 
+#define POSITION_2 AUTO
 //0-10
 #define POSITION_3 AUTO
 // So why isn't AUTO here by default? Well, please try and run Stabilize first, 

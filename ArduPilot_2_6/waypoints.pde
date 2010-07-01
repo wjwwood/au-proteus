@@ -71,6 +71,9 @@ void reached_waypoint()
 		// -------------------------------------
 		waypoint_event(EVENT_SET_NEW_WAYPOINT_INDEX);
 		
+		// XXX: mod to remove arbitrary waypoint
+		fakeWP = false;
+
 		// load next WP
 		// ------------
 		load_waypoint();
@@ -293,3 +296,40 @@ void reset_waypoint_index(void){
 }
 
 
+// run this whenever we have a "fake" WP, due to collision avoidance
+// -------------------------------------
+void load_waypoint(struct Location *wp)
+{
+	// flush our temp waypoint if receiving a {1,2,3}
+	if (wp->lat == 1L && wp->lng == 2L && wp->alt == 3L) {
+		Serial.println("Flushing arb. waypoint");
+		reached_waypoint();
+		return;
+	}
+		
+	// copy the current WP into the OldWP slot
+	// ---------------------------------------
+	prev_WP = current_loc;
+
+	// Load the next_WP slot
+	// ---------------------
+	next_WP = *wp;
+
+	// Decrement wp_index so that once this "fake" WP is reached,
+	// we'll go to where we were supposed to originally
+	wp_index--;
+	fakeWP = true;
+
+	// offset the altitude relative to home position
+	// ---------------------------------------------
+	next_WP.alt += home.alt;
+
+	// let them know we have loaded the WP
+	// -----------------------------------
+	waypoint_event(EVENT_LOADED_WAYPOINT);
+	
+	// do this whenever Old and new WP's change
+	// ---------------------------------------------
+	precalc_waypoint_distance();
+	crosstrack_bearing  =  get_bearing(&current_loc, &next_WP);
+}
