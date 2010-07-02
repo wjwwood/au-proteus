@@ -40,8 +40,8 @@ public class XBeeGCS {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		new XBeeGCS();
-		// set up the coordinator XBee Serial communication
+		XBeeGCS gcs = new XBeeGCS();
+		// set up the coordinator XBee serial communication
 		try {
 			xbee.open("/dev/ttyUSB0", 115200);
 			// hackish way of making the thread sleep forever.  open to other suggestions...
@@ -51,8 +51,13 @@ public class XBeeGCS {
 			e.printStackTrace();
 		}
 		finally {
-			xbee.close();
+			gcs.exit();
 		}
+	}
+	
+	private void exit() {
+		xbee.close();
+		System.exit(0);
 	}
 
 	private class GUI extends JFrame implements ActionListener {
@@ -64,17 +69,25 @@ public class XBeeGCS {
 			text = new JTextField(50);
 			text.addActionListener(this);
 
-			JButton button = new JButton("Load");
-			button.addActionListener(this);
+			JButton loadButton = new JButton("Load");
+			loadButton.addActionListener(this);
+			
+			JButton exitButton = new JButton("Exit");
+			exitButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					exit();
+				}
+			});
 
 			JPanel panel = new JPanel();
 			panel.add(text);
-			panel.add(button);
+			panel.add(loadButton);
+			panel.add(exitButton);
 
 			this.add(panel);
 			this.pack();
 			this.setVisible(true);
-
 		}
 
 		// read coordinate from text field and transmit it to the latest plane

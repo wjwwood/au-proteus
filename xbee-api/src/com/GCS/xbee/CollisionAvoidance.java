@@ -90,7 +90,7 @@ public class CollisionAvoidance {
 		log.info("sent " + Arrays.toString(waypoint) + " to Plane " + dataMap.get(addr).num);
 	}
 
-	public static class Coordinate {
+	static class Coordinate {
 		double x;
 		double y;
 		double z;
