@@ -23,10 +23,10 @@ public class XBeeSendTestPtP_S {
 	private static int ACKcount;			// number of ACK packets received
 
 	// configuration flags
-	private static boolean SYNC = true;				// use synchronous transmit (wait for ACK before next transmit)
-	private static boolean UART_ACK = false;		// receive UART ACK instead of network ACK
-	private static boolean DISCOVERY = false;		// force path discovery on each transmit
-	private static boolean API = true;				// firmware of destination (API or AT)
+	private static boolean SYNC = true;					// use synchronous transmit (wait for ACK before next transmit)
+	private static boolean UART_ACK = false;			// receive UART ACK instead of network ACK
+	private static boolean DISCOVERY = false;			// force path discovery on each transmit
+	private static boolean API = true;					// firmware of destination (API or AT)
 	
 	// our wonderfully useful constants
 	private static final int CONSTANT = 123;			// constant number to fill packet
