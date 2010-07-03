@@ -3,6 +3,8 @@ package com.GCS.xbee_test;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+
 import com.rapplogic.xbee.api.ApiId;
 import com.rapplogic.xbee.api.AtCommand;
 import com.rapplogic.xbee.api.AtCommandResponse;
@@ -17,6 +19,8 @@ import com.rapplogic.xbee.api.zigbee.ZNetTxStatusResponse;
 
 public class Shared {
 
+	private final static Logger log = Logger.getLogger(Shared.class);
+	
 	static int getRSSI(XBee xbee) {
 		try {
 			AtCommandResponse response = (AtCommandResponse) xbee.sendSynchronous(new AtCommand("DB"), 5000);
@@ -48,8 +52,13 @@ public class Shared {
 		} catch (XBeeException e) {
 			e.printStackTrace();
 		}
-		if (resp.getApiId() == ApiId.ZNET_TX_STATUS_RESPONSE)
-			return ((ZNetTxStatusResponse) resp).getRemoteAddress16();
+		if (resp.getApiId() == ApiId.ZNET_TX_STATUS_RESPONSE) {
+			ZNetTxStatusResponse rx = (ZNetTxStatusResponse) resp;
+			if (rx.isSuccess())
+				return rx.getRemoteAddress16();
+			else
+				log.debug("get16Addr: " + rx.getDiscoveryStatus() + " " + rx.getDeliveryStatus());
+		}
 		return null;
 	}
 }

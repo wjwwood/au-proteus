@@ -39,14 +39,18 @@ public class XBeeSendTestPtP_R {
 				if (resp.getApiId() == ApiId.ZNET_RX_RESPONSE) {	
 					log.info("Packet " + packetCount + ": Latency of " + latency/1000000 + " ms.");
 					// check for errors
-					ZNetRxResponse rx = (ZNetRxResponse) resp;
-					if (rx.getData().length == PKT_SIZE_INTS * 4) {	// to disregard other packets
-						errorCount += errorCheck(rx, packetCount);
-						packetCount++;
+					if (resp instanceof ZNetRxResponse) { 
+						ZNetRxResponse rx = (ZNetRxResponse) resp;
+						if (rx.getData().length == PKT_SIZE_INTS * 4) {	// to disregard other packets
+							errorCount += errorCheck(rx, packetCount);
+							packetCount++;
+						}
+						else {
+							log.error("ERROR in packet data length. Packet data is " + Arrays.toString(rx.getData()));
+						}
 					}
-					else {
-						log.error("ERROR in packet data length. Packet data is " + Arrays.toString(rx.getData()));
-					}
+					else
+						log.error("WTF at packet count " + packetCount);
 				}
 			}
 		}
