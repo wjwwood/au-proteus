@@ -1,5 +1,6 @@
 package com.GCS.xbee_test;
 
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -24,7 +25,7 @@ import com.rapplogic.xbee.api.zigbee.ZNetTxStatusResponse;
 public class XBeeMovingTest extends JFrame {
 	private static final long serialVersionUID = 1L;
 	// configuration flags
-	private static boolean UART_ACK = true;				// receive UART ACK instead of network ACK
+	private static boolean UART_ACK = false;			// receive UART ACK instead of network ACK
 	private static boolean DISCOVERY = false;			// force path discovery on each transmit
 	private static boolean API = true;					// firmware of destination (API or AT)
 	
@@ -61,10 +62,12 @@ public class XBeeMovingTest extends JFrame {
 		// initialize XBee communication and get 16-bit address of destination
 		xbee = new XBee();
 		xbee.open("/dev/ttyUSB0", 115200);
-		XBeeAddress16 dest_16 = (DISCOVERY) ? XBeeAddress16.ZNET_BROADCAST : Shared.get16Addr(xbee, DEST_64);
+		dest_16 = (DISCOVERY) ? XBeeAddress16.ZNET_BROADCAST : Shared.get16Addr(xbee, DEST_64);
 		if (dest_16 == null) {
 			log.error("Could not get 16-bit address");
+			dest_16 = XBeeAddress16.ZNET_BROADCAST;
 		}
+		log.debug("16-bit destination address: " + dest_16);
 		
 		// initialize GUI
 		JButton sendButton = new JButton("Send!");
@@ -74,7 +77,6 @@ public class XBeeMovingTest extends JFrame {
 				sendPacket();
 			}
 		});
-		sendButton.setSize(300, 300);
 		
 		JButton exitButton = new JButton("Exit");
 		exitButton.addActionListener(new ActionListener() {
@@ -84,18 +86,20 @@ public class XBeeMovingTest extends JFrame {
 			}
 		});
 
-		JPanel panel = new JPanel();
+		JPanel panel = new JPanel(new GridLayout());
 		panel.add(sendButton);
 		panel.add(exitButton);
 
 		this.add(panel);
-		this.pack();
+		//this.pack();
+		this.setSize(600, 480);
 		this.setVisible(true);
 	}
 	
 	void exit() {
 		errorCount += packetCount - ACKcount;
 
+		log.info("Packets sent:\t" + packetCount);
 		log.info("Errors:\t\t" + errorCount + " packets for " + (float)errorCount/(float)packetCount * 100 + "% error");
 		log.info("RSSI:\t\t"+ Shared.getRSSI(xbee)+"dBm");
 		log.info("Goodput:\t" + ((float)(packetCount*PKT_SIZE_INTS*4*8)/(float)totalLatency) +"kbps");

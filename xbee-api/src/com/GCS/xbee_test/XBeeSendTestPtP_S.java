@@ -56,7 +56,7 @@ public class XBeeSendTestPtP_S {
 			XBeeAddress16 dest_16 = (DISCOVERY) ? XBeeAddress16.ZNET_BROADCAST : Shared.get16Addr(xbee, DEST_64);
 			if (dest_16 == null) {
 				log.error("Could not get 16-bit address");
-				System.exit(-1);
+				dest_16 = XBeeAddress16.ZNET_BROADCAST;
 			}
 			// add a packet listener for ACKs
 			ACKPacketListener ACKListener = new ACKPacketListener();
