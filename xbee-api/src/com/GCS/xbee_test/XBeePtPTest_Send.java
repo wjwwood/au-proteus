@@ -31,7 +31,7 @@ public class XBeePtPTest_Send {
 	// our wonderfully useful constants
 	private static final int CONSTANT = 123;			// constant number to fill packet
 	private static final int PKT_SIZE_INTS = 21;		// packet payload size of 84 bytes (32-bit ints)
-	private static final int NUM_PACKETS = 1000;		// number of packets to send
+	private static final int NUM_PACKETS = 10000;		// number of packets to send
 	private static final int DELAY = 20;				// milliseconds of delay between packet transmits
 	private static final XBeeAddress64 DEST_64 = (API) ? 
 					new XBeeAddress64(0, 0x13, 0xA2, 0, 0x40, 0x62, 0xD6, 0xED) :	// IEEE address of receiving node (API)
