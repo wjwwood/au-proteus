@@ -15,11 +15,11 @@ import com.rapplogic.xbee.api.XBeeTimeoutException;
 import com.rapplogic.xbee.api.zigbee.ZNetTxRequest;
 import com.rapplogic.xbee.api.zigbee.ZNetTxStatusResponse;
 
-public class XBeeSendTestPtP_S {
+public class XBeePtPTest_Send {
 
 	// globals
 	private static XBee xbee;
-	private final static Logger log = Logger.getLogger(XBeeSendTestPtP_S.class);
+	private final static Logger log = Logger.getLogger(XBeePtPTest_Send.class);
 	private static int ACKcount;			// number of ACK packets received
 
 	// configuration flags
