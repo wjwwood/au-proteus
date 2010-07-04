@@ -60,11 +60,11 @@ public class XBeeGCS {
 		System.exit(0);
 	}
 
-	private class GUI extends JFrame implements ActionListener {
+	private class GUI implements ActionListener {
 		private JTextField text;
 
 		public GUI() {
-			super ("Load Arbitrary Waypoint");
+			JFrame frame = new JFrame("Load Arbitrary Waypoint");
 
 			text = new JTextField(50);
 			text.addActionListener(this);
@@ -85,9 +85,9 @@ public class XBeeGCS {
 			panel.add(loadButton);
 			panel.add(exitButton);
 
-			this.add(panel);
-			this.pack();
-			this.setVisible(true);
+			frame.add(panel);
+			frame.pack();
+			frame.setVisible(true);
 		}
 
 		// read coordinate from text field and transmit it to the latest plane
