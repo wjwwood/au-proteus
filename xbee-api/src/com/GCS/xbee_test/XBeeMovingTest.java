@@ -25,7 +25,7 @@ import com.rapplogic.xbee.api.zigbee.ZNetTxStatusResponse;
 public class XBeeMovingTest {
 	// configuration flags
 	private static boolean UART_ACK = false;			// receive UART ACK instead of network ACK
-	private static boolean DISCOVERY = true;			// force path discovery on each transmit
+	private static boolean DISCOVERY = false;			// force path discovery on each transmit
 
 	// our wonderfully useful constants
 	private static final int CONSTANT = 123;			// constant number to fill packet
@@ -37,13 +37,13 @@ public class XBeeMovingTest {
 	// fields
 	private XBee xbee;
 	private final static Logger log = Logger.getLogger(XBeeMovingTest.class);
-	private int packetCount;
+	private int packetCount;		// number of packets sent
 	private int ACKcount;			// number of ACK packets received
-	private int frameCount;
-	private long beforeSend;
-	private int totalLatency;
-	private int[] payload;
-	private XBeeAddress16 dest_16;
+	private int frameCount;			// number of received frames
+	private long beforeSend;		// UNIX time before sending packet
+	private int totalLatency;		// sum of all packet latencies
+	private int[] payload;			// 84 byte packet payload
+	private XBeeAddress16 dest_16;	// 16-bit address of destination
 	
 	public XBeeMovingTest() {
 		try {
@@ -121,7 +121,7 @@ public class XBeeMovingTest {
 		// send packet and calculate latency after receiving ACK
 		beforeSend = System.currentTimeMillis();
 		xbee.sendAsynchronous(new ZNetTxRequest(1, DEST_64, dest_16, 0, (UART_ACK) ? 1 : 0, payload));
-
+		log.debug("Packet " + packetCount + " sent.");
 		//update packet count
 		packetCount++;
 		payload[3] = (packetCount >> 24) & 0xFF;
@@ -148,6 +148,7 @@ public class XBeeMovingTest {
 		new XBeeMovingTest();
 	}
 	
+	// Packet listener class
 	private class ACKPacketListener implements PacketListener {
 		public void processResponse(XBeeResponse response) {
 			frameCount++;
