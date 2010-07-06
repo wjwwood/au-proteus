@@ -1,0 +1,5 @@
+Average latency: 3.821079846 ms
+Delay: 31 ms
+Average error: 0.0
+Average RSSI: -40.3333333333dBm
+Average Throughput: 29.0918616667kbps

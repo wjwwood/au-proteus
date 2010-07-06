@@ -24,6 +24,7 @@ def calc_latency(log_files):
 					read_first = True
 				total_latency = total_latency + packet_latency
 				#print "Packet " + str(packet_count) + ": Latency of " + str(packet_latency)
+				print latency_m.group(1) + "," + latency_m.group(2)
 		total_count = total_count + packet_count - first_count + 1
 	
 	return (float(total_latency) / float(total_count))
