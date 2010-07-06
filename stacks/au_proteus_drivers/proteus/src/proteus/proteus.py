@@ -39,6 +39,7 @@ OP_FULL_MODE    = '\x65' # e
 SENSOR_ODOM     = '\x01' # b00000001
 SENSOR_IR       = '\x02' # b00000010
 SENSOR_SERVO    = '\x06' # b00000110
+SENSOR_COMPASS  = '\x04' # b00000100
 
 START_CMD     = CMD_START+OP_START+CMD_STOP
 STOP_CMD      = CMD_START+OP_STOP+CMD_STOP
@@ -47,8 +48,11 @@ FULL_MODE_CMD = CMD_START+OP_FULL_MODE+CMD_STOP
 
 # Log system, this should be overriden with something like rospy.loginfo or rospy.logerr
 #  I do this in an effort to remove all ros dependant code from this file
-# info = lambda x: print x
-# logerr = lambda x: print >> sys.stderr, x
+def loginfo(msg):
+    print msg
+    
+def logerr(msg):
+    print >> sys.stderr, msg
 
 ###  Classes  ###
 class Proteus(object):

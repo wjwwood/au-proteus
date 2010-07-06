@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+PKG="gazebo_plugins"
+import math
+import roslib
+roslib.load_manifest(PKG)
+import sys, unittest
+import os, os.path, time
+import rospy
+from std_msgs.msg import String
+from geometry_msgs.msg import Pose, Quaternion, Point, PoseStamped, PoseWithCovariance, TwistWithCovariance, Twist, Vector3, Wrench
+from nav_msgs.msg import Odometry
+import tf.transformations as tft
+from numpy import float64
+import gazebo
+import gazebo.srv
+
+#initialize ros node
+rospy.init_node("pub_pose", anonymous=True)
+rospy.wait_for_service('/gazebo/apply_body_wrench')
+apply_body_wrench = rospy.ServiceProxy('/gazebo/apply_body_wrench', gazebo.srv.ApplyBodyWrench)
+
+wrench = Wrench()
+wrench.force.x = 1
+wrench.force.y = 0
+wrench.force.z = 2.5
+wrench.torque.x = 0
+wrench.torque.y = 1.0
+wrench.torque.z = 0
+
+try:
+    apply_body_wrench(body_name = 'object_link',
+                 wrench = wrench,
+                 start_time = rospy.Time.now())
+except rospy.ServiceException as e:
+    print e

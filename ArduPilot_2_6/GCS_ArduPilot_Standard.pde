@@ -13,9 +13,10 @@ Message Suffix
 ***    All messages use this suffix
 */
 
-#if GCS_PROTOCOL == 0 || GCS_PROTOCOL == 1
+#if GCS_PROTOCOL == 0 || GCS_PROTOCOL == 1 || GCS_PROTOCOL == 6
 
-void print_current_waypoint(){
+#if GCS_PROTOCOL != 6
+void print_current_waypoints(){
 		Serial.print("%%%");
 		Serial.print("PWP:");
 		Serial.print("\t\t");
@@ -35,6 +36,7 @@ void print_current_waypoint(){
 		Serial.print(next_WP.alt,DEC);
 		Serial.println(",***");
 }
+#endif
 
 void print_control_mode(void)
 {
@@ -44,6 +46,9 @@ void print_control_mode(void)
 			break;
 		case STABILIZE:
 			Serial.println("###STABILIZE\t1***");
+			break;
+		case CIRCLE:
+			Serial.println("###CIRCLE\t1***");
 			break;
 		case FLY_BY_WIRE_A:
 			Serial.println("###FLY BY WIRE A\t2***");
@@ -64,8 +69,7 @@ void print_control_mode(void)
 }
 
 
-
-
+#if GCS_PROTOCOL != 6
 void print_position(void)
 {
 			Serial.print("!!!");
@@ -99,6 +103,7 @@ void print_position(void)
 			print_telemetry = false;
 
 }
+
 
 #if GPS_PROTOCOL == 3
 
@@ -148,6 +153,8 @@ void printPerfData(void)
     imu_checksum_error_count = 0;
     IMU_mainLoop_count = 0;      //Used as a flag
 }
+#endif
+
 #endif
 
 #endif
@@ -216,51 +223,6 @@ void print_attitude(void)
 }
 #endif
 
-#if GCS_PROTOCOL == 6
-// a print position function more amiable for GCS
-void print_position(void)
-{
-		  union{long dword;
-  			byte in_bytes[4]; }; 
- 			
-			dword = current_loc.lat/10;
-			Serial.write(in_bytes,4);
-
-			dword = current_loc.lng/10;
-			Serial.write(in_bytes,4);
-
-			dword = current_loc.alt/100;
-			Serial.write(in_bytes,4);
-
-			dword = next_WP.lat/10;
-			Serial.write(in_bytes,4);
-
-			dword = next_WP.lng/10;
-			Serial.write(in_bytes,4);
-
-			dword = next_WP.alt/100;
-			Serial.write(in_bytes,4);
-
-			dword = ground_speed/100;
-			Serial.write(in_bytes,4);		
-
-			dword = target_bearing/100;
-			Serial.write(in_bytes,4);
-
-			dword = (fakeWP) ? 999 : wp_index;
-			Serial.write(in_bytes,4);//Actually is the waypoint.
-
-			dword = wp_distance;
-			Serial.write(in_bytes,4);
-
-			dword = battery_voltage;
-			Serial.write(in_bytes,4);
-}
-
-void print_current_waypoint() { }
-
-void print_control_mode() { }
-#endif
 
 //***********************************************************************************
 //  The following functions are used during startup and are not for telemetry
@@ -268,12 +230,12 @@ void print_control_mode() { }
 
 void print_radio()
 {
-	Serial.print("Radio inputs \tR/A: ");
-	Serial.print(ch1_in);
+	Serial.print("Radio inputs R/A: ");
+	Serial.print(ch1_in,DEC);
 	Serial.print("\tE: ");
-	Serial.print(ch2_in);
+	Serial.print(ch2_in,DEC);
 	Serial.print("\tT :");
-	Serial.println(ch3_in);
+	Serial.println(ch3_in,DEC);
 }
 
 void print_waypoints(byte wp_tot){

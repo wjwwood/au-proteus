@@ -5,11 +5,50 @@
 void failsafe_event()
 {
 	if (failsafe == true){
-		// This is an example of how to handle a failsafe.
-		// Control modes are numbers. Autopilot (5) and higher are under 
-		// computer navigation and don't need intervention.
-		if (control_mode < AUTO){
-			set_mode(RTL);
+		// This is how to handle a failsafe.
+		// 
+		switch(control_mode)
+		{
+			case MANUAL: // First position
+			set_mode(STABILIZE);
+			break;
+	
+			case STABILIZE: // middle position
+			if (GPS_fix != FAILED_GPS){
+				set_mode(RTL);
+			}else{
+				set_mode(CIRCLE);
+			}
+			break;
+	
+			case FLY_BY_WIRE_A: // middle position
+			if (GPS_fix != FAILED_GPS){
+				set_mode(RTL);
+			}else{
+				set_mode(CIRCLE);
+			}
+			break;
+			
+			case FLY_BY_WIRE_B: // middle position
+			if (GPS_fix != FAILED_GPS){
+				set_mode(RTL);
+			}else{
+				set_mode(CIRCLE);
+			}
+			break;
+
+			case CIRCLE: // middle position
+			break;
+
+			case AUTO: // middle position
+			break;
+
+			case RTL: // middle position
+			break;
+
+			case LOITER: // middle position
+			break;
+			
 		}
 	}else{
 		reset_I();
@@ -36,7 +75,13 @@ void switch_event(byte switchPosition)
 		break;
 
 		case 2: // middle position
-		//set_mode(RTL);
+		/*
+			if (GPS_fix != FAILED_GPS){
+				set_mode(RTL);
+			}else{
+				set_mode(CIRCLE);
+			}
+		*/
 		set_mode(POSITION_2);
 		break;
 
@@ -67,7 +112,7 @@ void waypoint_event(byte event)
 		case EVENT_LOADED_WAYPOINT:
 			//Serial.print("Loaded WP index:");
 			//Serial.println(wp_index,DEC);
-			print_current_waypoint();
+			print_current_waypoints();
 			reset_I();
 			
 			break;
@@ -75,7 +120,7 @@ void waypoint_event(byte event)
 		// called when the pattern to be flown is automatically restarted
 		case EVENT_LOOP: 
 			Serial.println("XXX \t Looped WP Index \t ***");
-			print_current_waypoint();
+			//print_current_waypoints();
 			break;			
 			
 	}

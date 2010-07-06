@@ -1,40 +1,45 @@
   /***************************************/
- /*ArduPilot 2.6.0 Header file*/
+ /*  ArduPilot 2.6.2 Header file		*/
 /***************************************/
+
+// XXX comments mean code or values that are different from stock ArduPilot
 
 //HARDWARE CONFIGURATION
 //0-1
 #define SHIELD_VERSION 1		// Old (red) shield versions is 0, the new (blue) shield version is 1, -1 = no shield
-//0-2
+//0-2 XXX
 #define AIRSPEED_SENSOR 1 		// (boolean) Do you have an airspeed sensor attached? 1= yes, 0 = no.
-//0-3
-#define GPS_PROTOCOL 0			// 0 = NMEA, 1=SIRF, 2=uBlox, 3 = ArduIMU, 5 = Simulated GPS mode (Debug)
-//0-4 Ground Control Station:
-#define GCS_PROTOCOL 6			// 0 = LabVIEW/HappyKillmore ground station, 1 = special test, 2 = Ardupilot Binary(not implemented), 5 = Jason's GCS, 6 = XBeeGCS
+//0-3 XXX
+#define GPS_PROTOCOL -1			// 0 = NMEA, 1=SIRF, 2=uBlox, 3 = ArduIMU, 4 = MediaTek, 5 = Simulated GPS mode (Debug), -1 = no GPS
+//0-4 Ground Control Station: XXX
+#define GCS_PROTOCOL 0			// 0 = Standard ArduPilot (LabVIEW/HappyKillmore), 1 = special test, 2 = Ardupilot Binary(not implemented), 5 = Jason's GCS, -1 = no GCS (no telemtry output), 6 = XBeeGCS
 
 //0-5 and 0-6 are for use with Thermopile sensors
-//0-5
-#define ENABLE_Z_SENSOR 0  		// 0 = no Z sensor, 1 = use Z sensor (no Z requires field calibration with each flight)
+//0-5 XXX
+#define ENABLE_Z_SENSOR 1  		// 0 = no Z sensor, 1 = use Z sensor (no Z requires field calibration with each flight)
 //0-6
 #define XY_SENSOR_LOCATION 0 	//XY Thermopiles Sensor placement
 //Mounted right side up: 		0 = cable in front, 1 = cable behind
 //Mounted upside down: 			2 = cable in front, 3 = cable behind
 
-//0-6
+//0-8
 #define BATTERY_EVENT 0 		// (boolean) 0 = don't read battery, 1 = read battery voltage (only if you have it wired up!)
-//0-7
+//0-9
 #define INPUT_VOLTAGE 5200.0 	// (Millivolts) voltage your power regulator is feeding your ArduPilot to have an accurate pressure and battery level readings. (you need a multimeter to measure and set this of course)
+//0-10
+#define THROTTLE_FAILSAFE 0 	// Do you want to react to a throttle failsafe condition? Default is no 0, Yes is 1
 
+#define THROTTLE_PIN 13	// pin 13, or pin 11 only (13 was old default, 11 may be a better choice for most people)
 
 // Flight Modes
 // these Flight modes can be changed either here or directly in events.pde
 // options are MANUAL, STABILIZE, FLY_BY_WIRE_A, FLY_BY_WIRE_B, AUTO, RTL, LOITER
 //0-8
 #define POSITION_1 MANUAL 
-//0-9
+//0-9 XXX
 #define POSITION_2 STABILIZE
-//0-10
-#define POSITION_3 RTL
+//0-10 XXX
+#define POSITION_3 FLY_BY_WIRE_A
 // So why isn't AUTO here by default? Well, please try and run Stabilize first, 
 // then FLY_BY_WIRE_A to verify you have good gains set up correctly 
 // before you try Auto and wreck your plane. I'll sleep better that way...
@@ -65,9 +70,9 @@
 #define REVERSE_THROTTLE 0		// 0 = Normal mode. 1 = Reverse mode - Try and reverse throttle direction on your radio first, most ESC use low values for low throttle.
 
 //1-8
-#define PITCH_TRIM 0			//(Degrees +- 5) allows you to offset bad IR sensor placement
+#define PITCH_TRIM 0			//(Degrees * 100) allows you to offset bad IR sensor placement
 //1-9
-#define ROLL_TRIM 0				// (Degrees +- 5) allows you to offset bad IR sensor placement
+#define ROLL_TRIM 0				// (Degrees * 100) allows you to offset bad IR sensor placement
 
 
 /***************************************/
@@ -87,7 +92,7 @@
 //  THROTTLE IN AUTO/RTL MODE
 //  In general, you can adjust speed with 2-1 above and ignore 2-4 to 2-8, but to make that more accurate and reliable, you can adjust these as well. The higher your airspeed, the higher your throttle cruise number should be. 
 
-				// NOTE - The range for throttle values is 0 to 125
+// NOTE - The range for throttle values is 0 to 125
 //2-4
 #define THROTTLE_CRUISE 55    	//  Default throttle value - Used for central value.  Failsafe value
           // NOTE - For proper tuning the THROTTLE_CRUISE value should be the correct value to produce CRUISE_AIRSPEED in straight and level flight with your airframe
@@ -104,8 +109,9 @@
 /***************************************/
 // RADIO
 //3-1
-#define SET_RADIO_LIMITS 0	// 0 = no, 1 = set the limits of the Channels with the radio at launch each time; see manual for more
+#define AUTO_TRIM 0			// 0 = no, 1 = set the trim of the radio when switching from Manual
 //3-2
+#define SET_RADIO_LIMITS 0	// 0 = no, 1 = set the limits of the Channels with the radio at launch each time; see manual for more
 //3-3
 #define RADIO_TYPE 0 		// 0 = sequential PWM pulses, 1 = simultaneous PWM pulses
 //3-4
@@ -116,8 +122,12 @@
 #define CH2_MIN 1000 		// (Microseconds) Range of Elevator
 //3-7
 #define CH2_MAX 2000 		// (Microseconds)
+// If you want to set this value at each startup use 0, otherwise set a PWM value 
+// Ch3 is the throttle, which rarely needs to be set more than once.
+// Use the radio tester to find the PWM values that work for you.
+// if your prop spins up during startup for a brief moment, you may want to set your value permanently
 //3-8
-#define CH3_TRIM 1000 		// (Microseconds) Trims are normally set automatically in setup.
+#define CH3_TRIM 0 		// PMW value = set (Microseconds)
 
 
 /***************************************/
@@ -135,8 +145,8 @@
 #define XTRACK_ENTRY_ANGLE 3000		// Max angle used to correct for track following	degrees*100
 //4-5
 #define LOITER_RADIUS 40 			// radius in meters of a Loiter
-//4-6
-#define REMEMBER_LAST_WAYPOINT_MODE 0 	//	If set 1 = will remember the last waypoint even if you restart the autopilot. 
+//4-6 XXX
+#define REMEMBER_LAST_WAYPOINT_MODE 1 	//	If set 1 = will remember the last waypoint even if you restart the autopilot. 
 										// 	0 = Will start from WP 1 (not 0) every time you switch into AUTO mode. 
 //4-7
 #define WP_ALTITUDE_RADIUS 10 		// (meters) accuracy needed to find our waypoint in meters   [not implemented]
@@ -148,8 +158,8 @@
 
 /***************************************/
 //ATTITUDE: ROLL GAINS [Start with changes of no more than 25% at a time]
-//5-1						IMPORTANT!!  Servo Gain values will be 100 times less than equivalent gains for ArduPilot 2.5
-#define SERVO_ROLL_P .006				// 	Primary value to tune - overall proportional term determines how much rudder/aileron you use to turn
+//5-1	XXX				IMPORTANT!!  Servo Gain values will be 100 times less than equivalent gains for ArduPilot 2.5
+#define SERVO_ROLL_P .005				// 	Primary value to tune - overall proportional term determines how much rudder/aileron you use to turn
 //5-2
 #define SERVO_ROLL_I .0					//	roll PID integrator gain (value should generally be low)
 //5-3
@@ -162,7 +172,7 @@
 
 /***************************************/
 //ATTITUDE: PITCH GAINS [Start with changes of no more than 25% at a time]
-//6-1						IMPORTANT!!  Servo Gain values will be 100 times less than equivalent gains for ArduPilot 2.5
+//6-1				IMPORTANT!!  Servo Gain values will be 100 times less than equivalent gains for ArduPilot 2.5
 #define SERVO_PITCH_P .006				//	Pitch Proportional gain
 //6-2
 #define SERVO_PITCH_I .0				//	Pitch integrator gain  (value should generally be low)
@@ -178,8 +188,8 @@
 
 /***************************************/
 //NAV: ROLL GAINS  [Start with changes of no more than 25% at a time]
-//7-1
-#define NAV_ROLL_P .6					// 	Primary value to tune - overall proportional term determines how aggressively we bank to change heading
+//7-1 XXX
+#define NAV_ROLL_P .75					// 	Primary value to tune - overall proportional term determines how aggressively we bank to change heading
 //7-2
 #define NAV_ROLL_I .0					//	roll PID integrator gain (value should generally be low)
 //7-3
@@ -190,8 +200,8 @@
 
 /***************************************/
 //NAV: PITCH GAINS [Start with changes of no more than 25% at a time]
-//8-1
-#define NAV_PITCH_P .65					// 	Overall proportional term determines how aggressively we change pitch to maintain airspeed
+//8-1 XXX
+#define NAV_PITCH_P .55					// 	Overall proportional term determines how aggressively we change pitch to maintain airspeed
 //8-2
 #define NAV_PITCH_I .0					//	PID integrator gain (value should generally be low)
 //8-3
@@ -251,33 +261,24 @@
 //11-7
 #define THROTTLE_CUT_WAYPOINT 999	// When this becomes the current waypoint we will cut the throttle; set it so it is well beyond the touchdown zone so that it is not reached, else you will enter RTL mode or loop waypoints
 				    // Remember that this is engaged with it becomes the next waypoint to go to, not when it is reached. If it is reached, the plane will climb again and RTL.
+
+
   /*****************/
  /*Debugging Stuff for Sim Mode*/
 /*****************/
 //12-1
-#define TURNRATE 85 // (degrees) how fast we turn per second in degrees at full bank
+#define TURNRATE 90 // (degrees) how fast we turn per second in degrees at full bank
 //12-2
 #define CLIMBRATE_UP 1000 // (meters * 100) how fast we climb in simulator at 90° 
 //12-3
 #define CLIMBRATE_DOWN 3000 // (meters * 100) how fast we climb in simulator at 90° 
 
-
 /***************/
-/* Stuff added by us */
+/* XXX Stuff added for XBee 2-way telemetry XXX */
 /***************/
-#define XBEE_BAUD_RATE  115200
-#define XBEE_RTS_PIN  14
+#define XBEE_BAUD_RATE  57600
+#define XBEE_TX_PIN 18
 #define GCS_MAX_PACKET_SIZE  16
-#define GPS_BAUD_RATE  FIFTY_SEVEN_K_BAUD
+#define GPS_BAUD_RATE  57600
 
-/*
-typedef struct {
-  struct Location current_loc;    
-	struct Location next_WP;				
-	long wp_distance;						
-	float ground_speed;					
-	long roll;											
-	long pitch;
-} packet_t;
-*/
-
+#define XBEE_READ

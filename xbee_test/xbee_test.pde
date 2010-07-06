@@ -22,6 +22,50 @@ struct GCS_packet_t {
   long checksum;	          // 4 bytes
 };
 
+struct Location current_loc;
+struct Location next_WP; 
+long ground_speed, target_bearing, wp_index, wp_distance, battery_voltage;
+boolean fakeWP = false;
+
+void print_position(void)
+{
+		  union{long dword;
+  			byte in_bytes[4]; }; 
+ 			
+			dword = current_loc.lat/10;
+			Serial.write(in_bytes,4);
+
+			dword = current_loc.lng/10;
+			Serial.write(in_bytes,4);
+
+			dword = current_loc.alt/100;
+			Serial.write(in_bytes,4);
+
+			dword = next_WP.lat/10;
+			Serial.write(in_bytes,4);
+
+			dword = next_WP.lng/10;
+			Serial.write(in_bytes,4);
+
+			dword = next_WP.alt/100;
+			Serial.write(in_bytes,4);
+
+			dword = ground_speed/100;
+			Serial.write(in_bytes,4);		
+
+			dword = target_bearing/100;
+			Serial.write(in_bytes,4);
+
+			dword = (fakeWP) ? 999 : wp_index;
+			Serial.write(in_bytes,4);//Actually is the waypoint.
+
+			dword = wp_distance;
+			Serial.write(in_bytes,4);
+
+			dword = battery_voltage;
+			Serial.write(in_bytes,4);
+}
+
 int xbee_read (struct GCS_packet_t *buf)
 {
         
@@ -93,10 +137,24 @@ void setup()
    Serial1.begin(115200);
    Serial2.begin(115200);
    Serial3.begin(115200);
+	 current_loc.lat = 10;
+	 current_loc.lng = 20;
+	 current_loc.alt = 300;
+	 next_WP.lat = 40;
+	 next_WP.lng = 50;
+	 next_WP.alt = 600;
+	 ground_speed = 700;
+	 target_bearing = 800;
+	 wp_index = 90;
+	 wp_distance = 1000;
+	 battery_voltage = 110;
 }
 void loop()
 {
+	print_position();
+	delay(1000);
   
+	/*
    digitalWrite(XBEE_RTS_PIN, HIGH);
    digitalWrite(XBEE_RTS_PIN2, HIGH);
    digitalWrite(XBEE_RTS_PIN3, HIGH);
@@ -158,6 +216,7 @@ void loop()
   Serial.println(packet3.next_WP.alt);
   Serial.println(packet3.checksum);
   Serial.println();
+	*/
   
 }
 

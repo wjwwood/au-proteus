@@ -48,12 +48,10 @@ void init_ardupilot()
 	pinMode(8,OUTPUT); 	// PB0 - AIN1		- Servo throttle					- OUTPUT THROTTLE
 	pinMode(9,OUTPUT);	// PB1 - OC1A		- Elevator PWM out					- Elevator PWM out
 	pinMode(10,OUTPUT);	// PB2 - OC1B		- Rudder PWM out					- Rudder PWM out
-	pinMode(11,OUTPUT); // PB3 - MOSI/OC2	- GPS status						- 
+	pinMode(11,INPUT); // PB3 - MOSI/OC2	- GPS status						- 
 	pinMode(12,OUTPUT); // PB4 - MISO		- Blue LED pin  - GPS Lock			- GPS Lock
 	pinMode(13,INPUT); 	//  PB5 - SCK		- Yellow LED pin   				- INPUT Throttle
 
-        pinMode(XBEE_RTS_PIN, OUTPUT);    // MOD: XBee RTS Pin
-        
 	digitalWrite(6,HIGH);
 	
 	// Enable GPS
@@ -92,20 +90,16 @@ void init_ardupilot()
 	// ---------------------------
 	reset_control_switch();
 
-	// Load the first waypoint
-	// ----------------------
-	load_waypoint();
-
-	// Makes the servos wiggle
-	// -----------------------
-	//demo_servos();
-
 	if(startup_check()){
 		Serial.println("Startup: Ground");
 		startup_ground();
 	}else{
 		Serial.println("Startup: AIR");
-                takeoffComplete = 1;
+		takeoffComplete = 1;
+		
+		// Load the first waypoint
+		// ----------------------
+		load_waypoint();
 	}
 }
 
@@ -136,14 +130,24 @@ void gps_first_read(void)
 void startup_ground(void)
 {
   
-        //Signal the IMU to perform ground start
-        //------------------------
-        pinMode(6,OUTPUT);
-        digitalWrite(6,LOW);
+	//Signal the IMU to perform ground start
+	//------------------------
+	pinMode(6,OUTPUT);
+	digitalWrite(6,LOW);
         
 	// Makes the servos wiggle
 	// -----------------------
 	demo_servos();
+
+	// set a default reasonable ir_max val
+	// -----------------------------------
+	ir_max = 150;
+	
+	// this is a ground start - reset home location
+	// --------------------------------------------
+	home.lat = 0;
+	home.lng = 0;
+	home.alt = 0;
 	
 	// start from waypoint 1
 	// ---------------------
@@ -251,6 +255,8 @@ void restore_EEPROM(void)
 	ch3_timer_trim = constrain(ch3_timer_trim, -15, 125);
 	ch3_fs  = ch3_trim - 50;
 
+	wp_radius = constrain(wp_radius, 	10, 	40);
+
 	ch1_min = constrain(ch1_min, 	950, 	2050);
 	ch1_max = constrain(ch1_max, 	950, 	2050);
 	ch2_min = constrain(ch2_min, 	950, 	2050);
@@ -276,13 +282,15 @@ void restore_EEPROM(void)
 void check_eeprom_defaults(void)
 {
 	int test = eeprom_read_word((uint16_t *)	0x3D6);	eeprom_busy_wait();
+	
 	if (test < 100){
 		eeprom_busy_wait();
+		eeprom_write_byte((uint8_t *)	0x0B, 15);		eeprom_busy_wait();	// default WP radius
 		eeprom_write_byte((uint8_t *)	0x3E7, 0);		eeprom_busy_wait();	// 0 = abs, 1 = relative
 		eeprom_write_byte((uint8_t *)	0x3E6, 0);		eeprom_busy_wait(); // 0 = return home after 1 trip
 		eeprom_write_word((uint16_t *)	0x01,  250);	eeprom_busy_wait();	// air_speed_offset
 		eeprom_write_word((uint16_t *)	0x3E4, 200);	eeprom_busy_wait();	// ir_max 
-	
+
 		eeprom_write_word((uint16_t *)	0x3D6, 1500);	eeprom_busy_wait();	// ch1_trim
 		eeprom_write_word((uint16_t *)	0x3D8, 1500);	eeprom_busy_wait();	// ch2_trim
 		eeprom_write_word((uint16_t *)	0x3DA, 1024);	eeprom_busy_wait(); // ch3_trim
@@ -299,6 +307,11 @@ void check_eeprom_defaults(void)
 
 void set_mode(byte mode)
 {
+	#if (AUTO_TRIM == 1)
+		if(control_mode == MANUAL) 
+			trim_control_surfaces();
+	#endif
+	
 	control_mode = mode;
 		
 	switch(control_mode)
@@ -352,21 +365,14 @@ void set_failsafe(boolean mode)
 			// re-read the switch so we can return to our preferred mode
 			reset_control_switch();
 			
-			// Release hardware MUX
-			// ---------------------
+			// Release hardware MUX just in case it's not set
+			// ----------------------------------------------
 			set_servo_mux(false);
 			
 		}else{
 			// We've lost radio contact
-			// ---------------------------
-			
-			// Are we in Manual or Stabilization?
-			// ----------------------------------
-			if(control_mode < AUTO){			
-				// Override hardware MUX
-				// ---------------------
-				set_servo_mux(true);
-			}
+			// ------------------------
+			// nothing to do right now
 		}
 		
 		// Let the user know what's up so they can override the behavior
@@ -395,12 +401,13 @@ void set_max_altitude_speed(void)
 // the XBEE radios - which is not implemented yet
 void setGPSMux(void)
 {
-	#if SHIELD_VERSION < 1
+	#if SHIELD_VERSION < 1 || GPS_PROTOCOL == 3 // GPS_PROTOCOL == 3 -> With IMU always go low.
 		digitalWrite(7, LOW); //Remove Before Fly Pull Up resistor
     #else
 		digitalWrite(7, HIGH); //Remove Before Fly Pull Up resistor
 	#endif
 }
+
 
 void setCommandMux(void)
 {
@@ -411,6 +418,23 @@ void setCommandMux(void)
 	#endif
 }
 
+void update_GPS_light(void)
+{
+	if(GPS_fix != VALID_GPS){
+		GPS_light = !GPS_light;
+		if(GPS_light){
+			digitalWrite(12, HIGH);	
+		}else{
+			digitalWrite(12, LOW);	
+		}		
+	}else{
+		
+		if(!GPS_light){
+			GPS_light = true;
+			digitalWrite(12, HIGH);
+		}
+	}
+}
 
 /* 
 ailerons
@@ -505,3 +529,5 @@ EEPROM memory map
 
 
 */
+
+
