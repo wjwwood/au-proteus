@@ -59,7 +59,7 @@ void set_ch1_degrees(float deg){
 #if MIXING_MODE == 1
 	ch1_out =  elevon1_trim + ((float)REVERSE_CH1_ELEVON  * deg * 11.111f);    //
 #endif
-	ch1_out = constrain(ch1_out, 	ch1_min, 	ch1_max);
+	ch1_out = constrain(ch1_out, ch1_min, 	ch1_max);
 	ch1_out = constrain(ch1_out, 	1000, 	2000);
 	OCR1A = ch1_out * 2;	//OCR1A is the channel 1 pulse width in half microseconds
 }

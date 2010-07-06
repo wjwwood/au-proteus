@@ -358,6 +358,11 @@ void control_loop()
 		case 0:
 			medium_loopCounter++;
 			print_attitude();
+                        Serial.print("\nCH 1 OUT: ");
+                        Serial.print(ch1_out,DEC);
+                        Serial.print("\nCH 1 IN: ");
+                        Serial.print(ch1_in,DEC);
+                        Serial.println();
 			break;
 
 		case 1:
