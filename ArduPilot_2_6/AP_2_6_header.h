@@ -10,9 +10,9 @@
 //0-2 XXX
 #define AIRSPEED_SENSOR 1 		// (boolean) Do you have an airspeed sensor attached? 1= yes, 0 = no.
 //0-3 XXX
-#define GPS_PROTOCOL 1			// 0 = NMEA, 1=SIRF, 2=uBlox, 3 = ArduIMU, 4 = MediaTek, 5 = Simulated GPS mode (Debug), -1 = no GPS
+#define GPS_PROTOCOL -1			// 0 = NMEA, 1=SIRF, 2=uBlox, 3 = ArduIMU, 4 = MediaTek, 5 = Simulated GPS mode (Debug), -1 = no GPS
 //0-4 Ground Control Station: XXX
-#define GCS_PROTOCOL 6			// 0 = Standard ArduPilot (LabVIEW/HappyKillmore), 1 = special test, 2 = Ardupilot Binary(not implemented), 5 = Jason's GCS, -1 = no GCS (no telemtry output), 6 = XBeeGCS
+#define GCS_PROTOCOL 0			// 0 = Standard ArduPilot (LabVIEW/HappyKillmore), 1 = special test, 2 = Ardupilot Binary(not implemented), 5 = Jason's GCS, -1 = no GCS (no telemtry output), 6 = XBeeGCS
 
 //0-5 and 0-6 are for use with Thermopile sensors
 //0-5 XXX
