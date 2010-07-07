@@ -34,7 +34,7 @@ import com.rapplogic.xbee.util.ByteUtils;
  * This class controls XBee communication, and can send and receive packets with XBee-equipped ArduPilots.
  * It maintains a GUI for loading an arbitrary waypoint in air, and can work with a collision avoidance thread for multiple planes.
  * 
- * @author Varun Sampath and Chester Hamilton
+ * @author Varun Sampath <vsampath@seas.upenn.edu>
  */
 public class XBeeGCS {
 	

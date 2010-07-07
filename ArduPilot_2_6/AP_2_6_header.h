@@ -36,9 +36,9 @@
 // options are MANUAL, STABILIZE, FLY_BY_WIRE_A, FLY_BY_WIRE_B, AUTO, RTL, LOITER
 //0-8
 #define POSITION_1 MANUAL 
-//0-9 XXX
+//0-9 
 #define POSITION_2 STABILIZE
-//0-10 XXX
+//0-10 XXX default FLY_BY_WIRE_A
 #define POSITION_3 AUTO
 // So why isn't AUTO here by default? Well, please try and run Stabilize first, 
 // then FLY_BY_WIRE_A to verify you have good gains set up correctly 
@@ -158,7 +158,7 @@
 
 /***************************************/
 //ATTITUDE: ROLL GAINS [Start with changes of no more than 25% at a time]
-//5-1		XXX			IMPORTANT!!  Servo Gain values will be 100 times less than equivalent gains for ArduPilot 2.5
+//5-1					IMPORTANT!!  Servo Gain values will be 100 times less than equivalent gains for ArduPilot 2.5
 #define SERVO_ROLL_P .006				// 	Primary value to tune - overall proportional term determines how much rudder/aileron you use to turn
 //5-2
 #define SERVO_ROLL_I .0					//	roll PID integrator gain (value should generally be low)
@@ -188,10 +188,10 @@
 
 /***************************************/
 //NAV: ROLL GAINS  [Start with changes of no more than 25% at a time]
-//7-1 XXX
+//7-1 XXX default .6
 #define NAV_ROLL_P .75					// 	Primary value to tune - overall proportional term determines how aggressively we bank to change heading
-//7-2
-#define NAV_ROLL_I .0					//	roll PID integrator gain (value should generally be low)
+//7-2 XXX default 0
+#define NAV_ROLL_I .1					//	roll PID integrator gain (value should generally be low)
 //7-3
 #define NAV_ROLL_D 0.0					//	roll PID derivative gain (for advanced users - should be zero for most airframes)
 //7-4
@@ -200,7 +200,7 @@
 
 /***************************************/
 //NAV: PITCH GAINS [Start with changes of no more than 25% at a time]
-//8-1 XXX
+//8-1
 #define NAV_PITCH_P .65					// 	Overall proportional term determines how aggressively we change pitch to maintain airspeed
 //8-2
 #define NAV_PITCH_I .0					//	PID integrator gain (value should generally be low)

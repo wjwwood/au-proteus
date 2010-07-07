@@ -6,7 +6,8 @@ import org.apache.log4j.Logger;
  * Runs a collision avoidance algorithm as a thread for the XBeeGCS to run.
  * Asks the XBeeGCS to transmit a new waypoint to an ArduPilot in the air if necessary.
  * 
- * @author Varun Sampath, Chester Hamilton, Andrew Proctor
+ * @author Varun Sampath <vsampath@seas.upenn.edu>
+ * @author Andrew Proctor <procta06@highpoint.edu>
  */
 class CollisionAvoidance implements Runnable {
 	
