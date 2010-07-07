@@ -14,6 +14,7 @@
 // output: none
 // errors: none
 void ADC0_Init(void);
+void ADC1_Init(void);
 
 //******** ADC_In *************** 
 // perform 10-bit analog to digital conversion
