@@ -106,6 +106,7 @@ byte 	GPS_update			= GPS_NONE;		// do we have GPS data to work with?
 const float t7				= 10000000.0;	// used to scale GPS values for EEPROM storage
 boolean print_telemetry		= false;
 long 	iTOW 				= 0; //GPS Millisecond Time of Week
+byte NumSats				= 0;
 
 // navigation 
 // ----------
@@ -364,6 +365,12 @@ void control_loop()
 			// only output location if we have GPS lock
 			// ----------------------------------------
 			update_telemetry();
+/*
+                        Serial.print("CH 1 OUT: ");
+                        Serial.print(ch1_out,DEC);
+                        Serial.print(" CH 1 IN: ");
+                        Serial.println(ch1_in,DEC);
+*/
 			break;
 
 		case 2:
@@ -396,6 +403,9 @@ void control_loop()
 					#if BATTERY_EVENT == 1
 					read_battery();
 					#endif
+					// Blink GPS LED if we don't have a fix
+					// ------------------------------------
+					update_GPS_light();
 
 #ifdef XBEE_READ
 					// XBee reading time
@@ -419,6 +429,8 @@ void control_loop()
 				case 2:
 					slow_loopCounter = 0;
 					// Reserved
+					//Serial.print("IR_MAX ");
+					//Serial.println(ir_max,DEC);
 					break;
 			}
 			break;	
@@ -438,9 +450,6 @@ void update_telemetry(void)
 	decode_gps();
 	#endif
 
-	// Blink GPS LED if we don't have a fix
-	// ------------------------------------
-	update_GPS_light();
 
 	if (print_telemetry){
 	
@@ -475,12 +484,18 @@ void update_current_flight_mode(void)
 {
 	if (control_mode == FLY_BY_WIRE_A || control_mode == FLY_BY_WIRE_B) {
 		// fake Navigation output using sticks
-		nav_roll = ((ch1_in - ch1_trim) * (long)HEAD_MAX * REVERSE_ROLL) / (ch1_max - ch1_trim);
-		nav_roll = constrain(nav_roll, -HEAD_MAX, HEAD_MAX); 
+		#if CH1_MAX == 2000 && CH2_MAX == 2000 && CH1_MIN == 1000 && CH2_MIN == 1000
+			// for people not using radio trim sequence
+			nav_roll = ((ch1_in - ch1_trim) * (long)HEAD_MAX * REVERSE_ROLL) / 300;
+			nav_pitch = ((ch2_in - ch2_trim) * -1 * (long)PITCH_MIN *  REVERSE_PITCH) / 300;
+		#else
+			nav_roll  = ((ch1_in - ch1_trim) * (long)HEAD_MAX * REVERSE_ROLL) / (ch1_max - ch1_trim);
+			nav_pitch = ((ch2_in - ch2_trim) * -1 * (long)PITCH_MIN *  REVERSE_PITCH) / (ch2_max - ch2_trim);
+		#endif
 
+		nav_roll = constrain(nav_roll, -HEAD_MAX, HEAD_MAX); 
 		// nav_pitch is the amount to adjust pitch due to altitude
 		// We use PITCH_MIN because its magnitude is normally greater than PITCH_MAX
-		nav_pitch = ((ch2_in - ch2_trim) * -1 * (long)PITCH_MIN *  REVERSE_PITCH) / (ch2_max - ch2_trim);
 		nav_pitch = constrain(nav_pitch, PITCH_MIN, PITCH_MAX);
 
 	} else if (control_mode == STABILIZE) {

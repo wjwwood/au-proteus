@@ -90,20 +90,16 @@ void init_ardupilot()
 	// ---------------------------
 	reset_control_switch();
 
-	// Load the first waypoint
-	// ----------------------
-	load_waypoint();
-
-	// Makes the servos wiggle
-	// -----------------------
-	//demo_servos();
-
 	if(startup_check()){
 		Serial.println("Startup: Ground");
 		startup_ground();
 	}else{
 		Serial.println("Startup: AIR");
 		takeoffComplete = 1;
+		
+		// Load the first waypoint
+		// ----------------------
+		load_waypoint();
 	}
 }
 
@@ -143,8 +139,8 @@ void startup_ground(void)
 	// -----------------------
 	demo_servos();
 
-	// set a reasonable ir_max val
-	// ---------------------------
+	// set a default reasonable ir_max val
+	// -----------------------------------
 	ir_max = 150;
 	
 	// this is a ground start - reset home location
@@ -243,10 +239,10 @@ void restore_EEPROM(void)
 	elevon1_trim 			= eeprom_read_word((uint16_t *)	0x3E8);	eeprom_busy_wait();
 	elevon2_trim 			= eeprom_read_word((uint16_t *)	0x3EA);	eeprom_busy_wait();
 
-	ch1_min 	= eeprom_read_word((uint16_t *)			0x3DC);	eeprom_busy_wait();
-	ch1_max 	= eeprom_read_word((uint16_t *)			0x3DE);	eeprom_busy_wait();
-	ch2_min 	= eeprom_read_word((uint16_t *)			0x3E0);	eeprom_busy_wait();
-	ch2_max 	= eeprom_read_word((uint16_t *)			0x3E2);	eeprom_busy_wait();
+	//ch1_min 	= eeprom_read_word((uint16_t *)			0x3DC);	eeprom_busy_wait();
+	//ch1_max 	= eeprom_read_word((uint16_t *)			0x3DE);	eeprom_busy_wait();
+	//ch2_min 	= eeprom_read_word((uint16_t *)			0x3E0);	eeprom_busy_wait();
+	//ch2_max 	= eeprom_read_word((uint16_t *)			0x3E2);	eeprom_busy_wait();
 
 	// lets fix broken values
 	// ----------------------
@@ -259,6 +255,9 @@ void restore_EEPROM(void)
 	ch3_timer_trim = constrain(ch3_timer_trim, -15, 125);
 	ch3_fs  = ch3_trim - 50;
 
+	wp_radius = constrain(wp_radius, 	10, 	40);
+        
+
 	ch1_min = constrain(ch1_min, 	950, 	2050);
 	ch1_max = constrain(ch1_max, 	950, 	2050);
 	ch2_min = constrain(ch2_min, 	950, 	2050);
@@ -266,6 +265,12 @@ void restore_EEPROM(void)
 	
 	ir_max	 = constrain(ir_max, 40, 512);
 	airspeed_offset = constrain(airspeed_offset, 0, 512);
+
+        wp_radius = 20;
+        ch1_min = 1030;
+        ch1_max = 1900;
+        ch2_min = 1030;
+        ch2_max = 1900;
 	
 	// load home latitude, long, alt
 	// -----------------------------
@@ -309,6 +314,11 @@ void check_eeprom_defaults(void)
 
 void set_mode(byte mode)
 {
+	#if (AUTO_TRIM == 1)
+		if(control_mode == MANUAL) 
+			trim_control_surfaces();
+	#endif
+	
 	control_mode = mode;
 		
 	switch(control_mode)

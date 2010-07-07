@@ -198,7 +198,23 @@ void throttle_failsafe()
 	}
 	#endif
 }
-
+void trim_control_surfaces()
+{
+	// Store control surface trim values
+	// ---------------------------------
+	#if  MIXING_MODE == 1
+		elevon1_trim = ch1_temp;
+		elevon2_trim = ch2_temp;
+		//Recompute values here using new values for elevon1_trim and elevon2_trim 
+		//We cannot use ch1_in and ch2_in values from read_radio() because the elevon trim values have changed
+		ch1_trim = REVERSE_ELEVONS * (REVERSE_CH2_ELEVON*(ch2_temp-elevon2_trim) - REVERSE_CH1_ELEVON*(ch1_temp-elevon1_trim))/2 + 1500;
+		ch2_trim = (REVERSE_CH2_ELEVON*(ch2_temp-elevon2_trim) + REVERSE_CH1_ELEVON*(ch1_temp-elevon1_trim))/2 + 1500;
+	#endif
+	#if MIXING_MODE == 0
+		ch1_trim = ch1_in;
+		ch2_trim = ch2_in;
+	#endif
+}
 void trim_radio()
 {
 	if (CH3_TRIM == 0){
@@ -227,20 +243,10 @@ void trim_radio()
 		ch3_trim  = ch3_in;
 	}
 	ch3_fs = ch3_trim - 50;  // auto save FS
-	// Store control surface trim values
-	// ---------------------------------
-	#if  MIXING_MODE == 1
-		elevon1_trim = ch1_temp;
-		elevon2_trim = ch2_temp;
-		//Recompute values here using new values for elevon1_trim and elevon2_trim 
-		//We cannot use ch1_in and ch2_in values from read_radio() because the elevon trim values have changed
-		ch1_trim = REVERSE_ELEVONS * (REVERSE_CH2_ELEVON*(ch2_temp-elevon2_trim) - REVERSE_CH1_ELEVON*(ch1_temp-elevon1_trim))/2 + 1500;
-		ch2_trim = (REVERSE_CH2_ELEVON*(ch2_temp-elevon2_trim) + REVERSE_CH1_ELEVON*(ch1_temp-elevon1_trim))/2 + 1500;
-	#endif
-	#if MIXING_MODE == 0
-		ch1_trim = ch1_in;
-		ch2_trim = ch2_in;
-	#endif
+
+	// trim ailerons/rudders/elevator
+	// ---------------------------
+	trim_control_surfaces();
 
 	// Warn if we are out of range
 	// ---------------------------
@@ -319,8 +325,8 @@ void read_radio_limits()
 
 	// set initial servo limits for calibration routine
 	// -------------------------------------------------
-	ch1_min = ch1_trim - 150;
-	ch1_max = ch1_trim + 150;
+	ch1_min = ch1_trim - 475;
+	ch1_max = ch1_trim + 475;
 
 	ch2_min = ch2_trim - 150;
 	ch2_max = ch2_trim + 150;

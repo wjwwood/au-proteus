@@ -35,6 +35,10 @@ unsigned char errorOp;
 unsigned char eo;
 unsigned char errorSub;
 unsigned char es;
+unsigned char dogOn = 0;
+unsigned char dogOff = 0;
+unsigned char wdf;
+unsigned char wdn;
 extern char ol;
 
 
@@ -82,6 +86,29 @@ void blinkSubErrLED(){
     }
 }
 
+void watchdog(){
+    if(dogOn != 0){
+        if(wdn > 0 && wdf == 0){
+            LED_YELLOW2 = 1;
+            wdn = 1;
+        }
+        else{
+            LED_YELLOW2 = 0;
+            wdn = 0;
+        }
+    }
+    else if(dogOff != 0){
+        if(wdf > 0){
+            LED_ORANGE2 = 1;
+            wdf = 1;
+        }
+        else{
+            LED_ORANGE2 = 0;
+            wdf = 0;
+        }
+    }
+}
+
 void InterfaceFG(void) {
   unsigned short u_16;
   short s_16;
@@ -97,7 +124,10 @@ void InterfaceFG(void) {
         if (started == 0) {
             started = Scheduler_AddEvent_hz(&blinkStartLED,1);
         }
-        mode = PROTEUS_MODE_PASSIVE;
+        if(dogOff == 0 && dogOn == 0){
+            mode = PROTEUS_MODE_PASSIVE;
+            dogOff = Scheduler_AddEvent_hz(&watchdog,1);
+        }
         break;  
       case PROTEUS_OPCODE_BAUD :
         //change SCI baud rate
@@ -108,14 +138,24 @@ void InterfaceFG(void) {
       case PROTEUS_OPCODE_SAFE :
         mode = PROTEUS_MODE_SAFE;
         safeId = Scheduler_AddEvent_hz(&periodicSafeMotor,1); //at 1hz
-        SCI_OutString(SCI_X86, "Motor Watchdog is now ON"); 
+        if(dogOn == 0){
+            if(dogOff != 0)
+                (unsigned char) Scheduler_RemoveEvent(dogOff); 
+            dogOff = 0;
+            dogOn = Scheduler_AddEvent_hz(&watchdog,1);
+        }
         break;
       case PROTEUS_OPCODE_FULL : 
         if(mode == PROTEUS_MODE_SAFE) {
           (unsigned char) Scheduler_RemoveEvent(safeId);    
         }
 		mode = PROTEUS_MODE_FULL;
-        SCI_OutString(SCI_X86, "WARNING!!! Motor Watchdog is now OFF!"); 
+        if(dogOff == 0){
+            if(dogOn != 0)
+                (unsigned char) Scheduler_RemoveEvent(dogOn); 
+            dogOn = 0;
+            dogOff = Scheduler_AddEvent_hz(&watchdog,1);
+        }
         break;   
       case PROTEUS_OPCODE_STOP : 
         if(mode == PROTEUS_MODE_SAFE) {
@@ -123,8 +163,20 @@ void InterfaceFG(void) {
         }
         MC_SetVel(0);
         Servo_SetSteeringAngle(0);
-        (unsigned char) Scheduler_RemoveEvent(started);
+        if (started != 0)
+            (unsigned char) Scheduler_RemoveEvent(started);
+        if (dogOn != 0)
+            (unsigned char) Scheduler_RemoveEvent(dogOn);
+        if (dogOff != 0)
+            (unsigned char) Scheduler_RemoveEvent(dogOff);
+        dogOn = 0;
+        dogOff = 0;
+        started = 0;
+        LED_YELLOW2 = 0;
+        LED_ORANGE2 = 0;
         LED_GREEN2 = 0;
+        wdf = 0;
+        wdn = 0;
         st = 0;
         break;
       case PROTEUS_OPCODE_DRIVE :  
@@ -172,9 +224,11 @@ void InterfaceFG(void) {
 				break;
 			  case 5 :
 				LED_YELLOW2 = 1;
+                wdn = 1;
 				break;
               case -5 :
 				LED_YELLOW2 = 0;
+                wdn = 0;
 				break;
 			  case 6 :
 				LED_ORANGE1 = 1;
@@ -184,9 +238,11 @@ void InterfaceFG(void) {
 				break;
 			  case 7 :
 				LED_ORANGE2 = 1;
+                wdf = 1;
 				break;
 			  case -7 :
 				LED_ORANGE2 = 0;
+                wdf = 0;
 				break;
 			  case 8 :
 				LED_RED1 = 1;
@@ -222,8 +278,10 @@ void InterfaceFG(void) {
 				LED_GREEN2 = 1;
                 st = 1;
 				LED_YELLOW2 = 1;
+                wdn = 1;
 				LED_ORANGE1 = 1;
 				LED_ORANGE2 = 1;
+                wdf = 1;
 				LED_RED1 = 1;
 				LED_RED2 = 1;
                 es = 1;
@@ -238,8 +296,10 @@ void InterfaceFG(void) {
 				LED_GREEN2 = 0; 
                 st = 0;
 				LED_YELLOW2 = 0;
+                wdn = 0;
 				LED_ORANGE1 = 0;
 				LED_ORANGE2 = 0;
+                wdf = 0;
 				LED_RED1 = 0;
 				LED_RED2 = 0;
                 es = 0;

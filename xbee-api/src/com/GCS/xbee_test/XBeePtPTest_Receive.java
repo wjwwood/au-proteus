@@ -11,10 +11,10 @@ import com.rapplogic.xbee.api.XBeeException;
 import com.rapplogic.xbee.api.XBeeResponse;
 import com.rapplogic.xbee.api.zigbee.ZNetRxResponse;
 
-public class XBeeSendTestPtP_R {
+public class XBeePtPTest_Receive {
 
 	private static XBee xbee;
-	private final static Logger log = Logger.getLogger(XBeeSendTestPtP_R.class);
+	private final static Logger log = Logger.getLogger(XBeePtPTest_Receive.class);
 
 	private static final int CONSTANT = 123;		// constant number to fill packet
 	private static final int PKT_SIZE_INTS = 21;	// packet payload size of 84 bytes (32-bit ints)
@@ -24,13 +24,13 @@ public class XBeeSendTestPtP_R {
 		PropertyConfigurator.configure("log4j.properties");
 		xbee = new XBee();
 
-		int packetCount = 0;
+		int packetCount = 1;
 		int errorCount = 0;
 
 		try {
 			xbee.open("/dev/ttyUSB0", 115200);
 
-			while (packetCount < NUM_PACKETS) {
+			while (packetCount <= NUM_PACKETS) {
 				// receive packet and calculate single packet receive latency
 				long beforeReceive = System.nanoTime();
 				XBeeResponse resp = xbee.getResponse();
@@ -39,14 +39,18 @@ public class XBeeSendTestPtP_R {
 				if (resp.getApiId() == ApiId.ZNET_RX_RESPONSE) {	
 					log.info("Packet " + packetCount + ": Latency of " + latency/1000000 + " ms.");
 					// check for errors
-					ZNetRxResponse rx = (ZNetRxResponse) resp;
-					if (rx.getData().length == PKT_SIZE_INTS * 4) {
-						errorCount += errorCheck(rx, packetCount);
-						packetCount++;
+					if (resp instanceof ZNetRxResponse) { 
+						ZNetRxResponse rx = (ZNetRxResponse) resp;
+						if (rx.getData().length == PKT_SIZE_INTS * 4) {	// to disregard other packets
+							errorCount += errorCheck(rx, packetCount);
+							packetCount++;
+						}
+						else {
+							log.error("ERROR in packet data length. Packet data is " + Arrays.toString(rx.getData()));
+						}
 					}
-					else {
-						log.error("ERROR in packet data length. Packet data is " + Arrays.toString(rx.getData()));
-					}
+					else
+						log.error("WTF at packet count " + packetCount);
 				}
 			}
 		}
@@ -68,7 +72,7 @@ public class XBeeSendTestPtP_R {
 				
 		// check if first int contains the right count
 		if (payload[0] != packetCount) {
-			log.warn("count inconsistency, count @ "+packetCount+", received: "+payload[0]);
+			log.warn("count inconsistency, count @ "+packetCount+", received: "+Arrays.toString(payload));
 			return 1;
 		}
 		

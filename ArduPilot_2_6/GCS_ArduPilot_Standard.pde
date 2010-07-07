@@ -16,7 +16,7 @@ Message Suffix
 #if GCS_PROTOCOL == 0 || GCS_PROTOCOL == 1 || GCS_PROTOCOL == 6
 
 #if GCS_PROTOCOL != 6
-void print_current_waypoint(){
+void print_current_waypoints(){
 		Serial.print("%%%");
 		Serial.print("PWP:");
 		Serial.print("\t\t");
@@ -230,12 +230,12 @@ void print_attitude(void)
 
 void print_radio()
 {
-	Serial.print("Radio inputs \tR/A: ");
-	Serial.print(ch1_in);
+	Serial.print("Radio inputs R/A: ");
+	Serial.print(ch1_in,DEC);
 	Serial.print("\tE: ");
-	Serial.print(ch2_in);
+	Serial.print(ch2_in,DEC);
 	Serial.print("\tT :");
-	Serial.println(ch3_in);
+	Serial.println(ch3_in,DEC);
 }
 
 void print_waypoints(byte wp_tot){

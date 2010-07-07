@@ -10,10 +10,6 @@ void return_to_launch()
 	// ------------
 	wp_index = 0;
 
-	// Save current waypoint index
-	// ---------------------------
-	save_wp_index();
-
 	// Loads WP from Memory
 	// --------------------
 	load_waypoint();
@@ -70,10 +66,6 @@ void reached_waypoint()
 			Serial.print(" Moving on to waypoint: ");
 			Serial.println(wp_index,DEC);
 		}
-				
-		// Save current waypoint index to EEPROM
-		// -------------------------------------
-		save_wp_index();
 		
 		// notify user of new index selection
 		// -------------------------------------
@@ -92,6 +84,10 @@ void reached_waypoint()
 // -------------------------------------
 void load_waypoint()
 {
+	// Save current waypoint index to EEPROM
+	// -------------------------------------
+	save_wp_index();
+
 	// copy the current WP into the OldWP slot
 	// ---------------------------------------
 	prev_WP = current_loc;
@@ -111,7 +107,7 @@ void load_waypoint()
 	// do this whenever Old and new WP's change
 	// ---------------------------------------------
 	precalc_waypoint_distance();
-	crosstrack_bearing  =  get_bearing(&prev_WP, &next_WP);
+	crosstrack_bearing  =  get_bearing(&current_loc, &next_WP);
 }
 
 
@@ -268,7 +264,7 @@ byte get_waypiont_mode(void)
 void precalc_waypoint_distance(void)
 {
 	// this is handy for the groundstation
-	wp_totalDistance 	= getDistance(&prev_WP, &next_WP);
+	wp_totalDistance 	= getDistance(&current_loc, &next_WP);
 
 	// this is used to offset the shrinking longitude as we go towards the poles	
 	float rads = (abs(next_WP.lat)/t7) * 0.0174532925;
@@ -282,7 +278,6 @@ void precalc_waypoint_distance(void)
 	
 	// output the new WP information to the Ground Station
 	// ---------------------------------------------------
-	print_current_waypoint();
 	#if GCS_PROTOCOL == 5
 	print_new_wp_info();
 	#endif
@@ -305,8 +300,9 @@ void reset_waypoint_index(void){
 // -------------------------------------
 void load_waypoint(struct Location *wp)
 {
-	// flush our temp waypoint if receiving a {0,0,0}
-	if (wp->lat == 0 && wp->lng == 0 && wp->alt == 0) {
+	// flush our temp waypoint if receiving a {1,2,3}
+	if (wp->lat == 10000000L && wp->lng == 20000000L && wp->alt == 300L) {
+		Serial.println("Flushing arb. waypoint");
 		reached_waypoint();
 		return;
 	}
@@ -335,5 +331,5 @@ void load_waypoint(struct Location *wp)
 	// do this whenever Old and new WP's change
 	// ---------------------------------------------
 	precalc_waypoint_distance();
-	crosstrack_bearing  =  get_bearing(&prev_WP, &next_WP);
+	crosstrack_bearing  =  get_bearing(&current_loc, &next_WP);
 }

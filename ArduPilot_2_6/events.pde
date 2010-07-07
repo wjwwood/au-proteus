@@ -112,7 +112,7 @@ void waypoint_event(byte event)
 		case EVENT_LOADED_WAYPOINT:
 			//Serial.print("Loaded WP index:");
 			//Serial.println(wp_index,DEC);
-			print_current_waypoint();
+			print_current_waypoints();
 			reset_I();
 			
 			break;
@@ -120,7 +120,7 @@ void waypoint_event(byte event)
 		// called when the pattern to be flown is automatically restarted
 		case EVENT_LOOP: 
 			Serial.println("XXX \t Looped WP Index \t ***");
-			print_current_waypoint();
+			//print_current_waypoints();
 			break;			
 			
 	}

@@ -41,7 +41,7 @@ void print_position(void)
 }
 
 // dummy print_current_waypoint()
-void print_current_waypoint(){ }
+void print_current_waypoints(){ }
 
 // dummy print_attitude()
 void print_attitude() { }
