@@ -1,6 +1,6 @@
 package com.GCS.xbee;
 
-public class PlaneData {
+class PlaneData {
 	
 	public int num;
 	public int currLat;
