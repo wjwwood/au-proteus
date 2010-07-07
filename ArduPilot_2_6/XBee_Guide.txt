@@ -1,0 +1,412 @@
+   _____      ________      .__    .___         __          
+  /  _  \    /  _____/ __ __|__| __| _/____   _/  |_  ____  
+ /  /_\  \  /   \  ___|  |  \  |/ __ |/ __ \  \   __\/  _ \ 
+/    |    \ \    \_\  \  |  /  / /_/ \  ___/   |  | (  <_> )
+\____|__  /  \______  /____/|__\____ |\___  >  |__|  \____/ 
+        \/          \/              \/    \/                
+.____                     .___.__                
+|    |    _________     __| _/|__| ____    ____  
+|    |   /  _ \__  \   / __ | |  |/    \  / ___\ 
+|    |__(  <_> ) __ \_/ /_/ | |  |   |  \/ /_/  >
+|_______ \____(____  /\____ | |__|___|  /\___  / 
+        \/         \/      \/         \//_____/  
+ __      __                             .__        __           .__           __  .__            
+/  \    /  \_____  ___.__.______   ____ |__| _____/  |_  ______ |__| ____   _/  |_|  |__   ____  
+\   \/\/   /\__  \<   |  |\____ \ /  _ \|  |/    \   __\/  ___/ |  |/    \  \   __\  |  \_/ __ \ 
+ \        /  / __ \\___  ||  |_> >  <_> )  |   |  \  |  \___ \  |  |   |  \  |  | |   Y  \  ___/ 
+  \__/\  /  (____  / ____||   __/ \____/|__|___|  /__| /____  > |__|___|  /  |__| |___|  /\___  >
+       \/        \/\/     |__|                  \/          \/          \/             \/     \/ 
+   _____  .__        
+  /  _  \ |__|______ 
+ /  /_\  \|  \_  __ \
+/    |    \  ||  | \/
+\____|__  /__||__|   
+        \/          
+        
+By: Chester Hamilton chamilton09@tamu.edu
+    Varun Sampath    vsampath@seas.upenn.edu
+-------------------------------------------------------------------------------------------------------------------------
+
+
+The purpose of our modifications to the original Ardupilot code was to be able to dynamically upload intermediary waypoints to UAVs in mid-flight. This would then allow our GCS to output intermediary waypoints as a method of collision avoidance. This guide has a few sections. Our reasoning behind our code and its functionality is presented first, followed by an index of all changes from the original Ardupilot code with suggested placement to ease maintainance of code between Ardupilot revisions.
+
+-------------------------------------------------------------------------------------------------------------------------
+
+----------------------------
+Functionality and Reasoning:
+----------------------------
+
+First, we had to figure out a way to read any data sent to the UAV in mid-flight via our XBee modules. Conveniently, an XBee module configured with the AT firmware presents itself as a serial line with Din and Dout being its Rx and Tx lines respectively. Unfortunately the Ardupilot microcontroller only has a single serial port which the GPS module constantly sends data across. However, the GPS only really uses the Ardupilot's Rx (after init), allowing us to use the Tx to send data serially to the XBee module. Thus we only needed some way of receiving data from the XBee. We first considered multiplexing the GPS and XBee on the same serial port using a multiplexer chip, but before the chip arrived we settled on using one of the Ardupilot's free pins as a software serial line. The pin we chose was Analog pin 4, which had no defined interrupt vector. Thus we were able to easily adapt it to our needs without worrying about slowing any other functions in the interrupt vector. The NewSoftSerial library uses interrupts to receive data on the specified pin and store it in a buffer for the user to access with functions similar to the functions of a normal serial port in the Arduino IDE (i.e. available(), read(),flush()). This library (with the few modifications listed later) enabled us to use A4 as the Ardupilot's serial Rx to the XBee module, allowing us to read any data that the XBee received from the GCS XBee module. Using formatted packets from the GCS, we were able to read in a waypoint transmitted from the GCS to the UAV while in the air.
+Here is the GCS_packet (i.e. our formatted waypoint information)
+		struct GCS_packet_t {
+  			struct Location next_WP;  // 12 bytes
+  			long checksum;	          // 4 bytes
+		};
+Here is the xbee_read() function that reads in our waypoint from the software serial(here named xbeeSerial) rx pin:
+		int xbee_read (struct GCS_packet_t *buf)
+		{
+			int i = 0;
+			byte *ptr = (byte *) buf;
+
+			// read packet into buffer
+			while (i < GCS_MAX_PACKET_SIZE && xbeeSerial.available()){
+				ptr[i++] = (byte)xbeeSerial.read();
+			}
+	
+			xbeeSerial.flush();
+
+			//implement a checksum function to ensure data integrity
+			return 	(i == 0 || i < GCS_MAX_PACKET_SIZE) ? 0 :
+							(buf->checksum == (buf->next_WP.lat + buf->next_WP.alt)) ? i : -1;
+		}
+
+----------------------------------------
+
+We next had to change the plane's waypoint to the lat lng and alt specified in the packet. In order to do this, we overloaded the load_waypoint function to make the previous waypoint our current location, and the next waypoint the waypoint we received from the GCS (the Ardupilot uses this method to load new waypoints after it has reached a waypoint). It is important to note that when the Ardupilot normally reaches waypoints the waypoint index is incremented and then a call is made to "load_waypoint". Thus, when the UAV reaches our new waypoint we must make sure that when the waypoint index is incremented, it has the same index as when we loaded our arbitrary point. This simply means we must decrement the waypoint index when we load our arbitrary waypoint, so when we reach that point and the index is incremented, it resumes its normal course. Here is the code along with our attempt at flushing our arbitrary waypoint:
+
+		void load_waypoint(struct Location *wp)
+		{
+			// flush our temp waypoint if receiving a {1,2,3}
+			if (wp->lat == 10000000L && wp->lng == 20000000L && wp->alt == 300L) {
+				Serial.println("Flushing arb. waypoint");
+				reached_waypoint();
+				return;
+			}
+		
+			// copy the current WP into the OldWP slot
+			// ---------------------------------------
+			prev_WP = current_loc;
+
+			// Load the next_WP slot
+			// ---------------------
+			next_WP = *wp;
+
+			// Decrement wp_index so that once this "fake" WP is reached,
+			// we'll go to where we were supposed to originally
+			wp_index--;
+			fakeWP = true;
+
+			// offset the altitude relative to home position
+			// ---------------------------------------------
+			next_WP.alt += home.alt;
+
+			// let them know we have loaded the WP
+			// -----------------------------------
+			waypoint_event(EVENT_LOADED_WAYPOINT);
+	
+			// do this whenever Old and new WP's change
+			// ---------------------------------------------
+			precalc_waypoint_distance();
+			crosstrack_bearing  =  get_bearing(&current_loc, &next_WP);
+		} 
+
+----------------------------------------
+
+Next, we needed a way to indicate that we were in fact headed to an intermediary waypoint instead of a "real" eeprom waypoint. To do this we introduced a new boolean "fakeWP" in the main ArduPilot_2_6.pde file.
+		
+		boolean fakeWP = false;
+		
+We then check for this flag when printing the waypoint information in our GCS_XBee.pde file:
+
+		longUnion.dword = (fakeWP) ? 997 : wp_index;
+		Serial.write(longUnion.byte,4);
+
+Thus, if our GCS prints out that the waypoint index is "997", we know that the UAV is headed to an arbitrary waypoint (or at least that the flag indicates such).
+
+After all of this, we get a way to receive a waypoint from the GCS, make the waypoint our next waypoint, indicate when there is an arbitrary waypoint loaded, and return to our normal course after reaching the sent waypoint. This was exactly what we set out to do...so now...cake.
+-------------------------------------------------------------------------------------------------------------------------
+
+-----------------------------------------------------------
+Changes to the original Ardupilot code and where they are:
+-----------------------------------------------------------
+
+All changes were confined to the following files: AP_2_6_header.h, ArduPilot_2_6.pde, GCS_ArduPilot_Standard.pde, waypoints.pde, and our two additional files GCS_XBee.pde and xbee.pde
+
+
+----------------------------------------
+Files modified in Ardupilot code
+----------------------------------------
+
+
+AP_2_6_header.h
+
+Anywhere in	#define GCS_PROTOCOL 6
+header
+		/***************/
+		/* XXX Stuff added for XBee 2-way telemetry XXX */
+		/***************/
+		#define XBEE_BAUD_RATE  57600
+		#define XBEE_TX_PIN 18
+		#define GCS_MAX_PACKET_SIZE  16
+		#define GPS_BAUD_RATE  57600
+
+		#define XBEE_READ
+		
+----------------------------------------
+
+ArduPilot_2_6.pde
+	
+Global:			// XXX: Added for arbitrary waypoint loading
+			boolean fakeWP = false;
+		
+			...
+		
+			#ifdef XBEE_READ
+			// Packet
+			// ------
+			struct GCS_packet_t {
+			  struct Location next_WP;  // 12 bytes
+			  long checksum;	          // 4 bytes
+			};
+
+			struct GCS_packet_t pkt;
+			int val;
+			NewSoftSerial xbeeSerial (XBEE_TX_PIN, XBEE_TX_PIN);
+			#endif
+		
+		
+In setup()		#ifdef XBEE_READ
+			init_xbee();
+			#endif
+		
+		
+In control_loop() 	#ifdef XBEE_READ
+end of case 0			// XBee reading time
+in slow loop			val = xbee_read(&pkt);
+				if (val > 0)
+					load_waypoint(&(pkt.next_WP));
+			#ifdef XBEE_DEBUG
+				else
+					Serial.println("Checksum fail!");
+			#endif
+			#endif
+			
+----------------------------------------
+
+GCS_ArduPilot_Standard.pde
+
+Modified if 		#if GCS_PROTOCOL == 0 || GCS_PROTOCOL == 1 || GCS_PROTOCOL == 6
+at top of file
+		
+Around				#if GCS_PROTOCOL != 6
+print_current_waypoints		...
+				#endif
+		
+Around				#if GCS_PROTOCOL != 6
+print_position()		...
+				#endif
+				
+----------------------------------------
+
+waypoints.pde
+
+Just before load_waypoint()		// XXX: mod to remove arbitrary waypoint
+in function reached_waypoint()		fakeWP = false;
+
+
+Overloaded		// run this whenever we have a "fake" WP, due to collision avoidance
+load_waypoint		// -------------------------------------
+function		void load_waypoint(struct Location *wp)
+			{
+Added to end				// flush our temp waypoint if receiving a {1,2,3}
+of waypoints.pde file			if (wp->lat == 10000000L && wp->lng == 20000000L && wp->alt == 300L) {
+					Serial.println("Flushing arb. waypoint");
+					reached_waypoint();
+					return;
+				}
+		
+				// copy the current WP into the OldWP slot
+				// ---------------------------------------
+				prev_WP = current_loc;
+
+				// Load the next_WP slot
+				// ---------------------
+				next_WP = *wp;
+
+				// Decrement wp_index so that once this "fake" WP is reached,
+				// we'll go to where we were supposed to originally
+				wp_index--;
+				fakeWP = true;
+
+				// offset the altitude relative to home position
+				// ---------------------------------------------
+				next_WP.alt += home.alt;
+
+				// let them know we have loaded the WP
+				// -----------------------------------
+				waypoint_event(EVENT_LOADED_WAYPOINT);
+	
+				// do this whenever Old and new WP's change
+				// ---------------------------------------------
+				precalc_waypoint_distance();
+				crosstrack_bearing  =  get_bearing(&current_loc, &next_WP);
+			}
+			
+----------------------------------------
+Files added to the Ardupilot directory
+----------------------------------------
+			
+
+GCS_XBee.pde
+
+		// GCS code for XBee GCS
+		// Also uses print_control_mode() function from GCS_ArduPilot_Standard
+
+		#if GCS_PROTOCOL == 6
+		// a print position function more amiable for Java XBee GCS
+		void print_position(void)
+		{
+					Serial.flush();
+
+					longUnion.dword = current_loc.lat/10;
+					Serial.write(longUnion.byte,4);
+
+					longUnion.dword = current_loc.lng/10;
+					Serial.write(longUnion.byte,4);
+
+					longUnion.dword = current_loc.alt/100;
+					Serial.write(longUnion.byte,4);
+
+					longUnion.dword = next_WP.lat/10;
+					Serial.write(longUnion.byte,4);
+
+					longUnion.dword = next_WP.lng/10;
+					Serial.write(longUnion.byte,4);
+
+					longUnion.dword = next_WP.alt/100;
+					Serial.write(longUnion.byte,4);
+
+					longUnion.dword = ground_speed/100;
+					Serial.write(longUnion.byte,4);		
+
+					longUnion.dword = target_bearing/100;
+					Serial.write(longUnion.byte,4);
+
+					longUnion.dword = (fakeWP) ? 997 : wp_index;
+					Serial.write(longUnion.byte,4);//Actually is the waypoint.
+
+					longUnion.dword = wp_distance;
+					Serial.write(longUnion.byte,4);
+
+					Serial.flush();
+		}
+
+		// dummy print_current_waypoint()
+		void print_current_waypoints(){ }
+
+		// dummy print_attitude()
+		void print_attitude() { }
+
+		#endif
+		
+----------------------------------------
+
+xbee.pde
+
+		// Setup for XBee TX
+		void init_xbee()
+		{
+			// all this stuff will work if the pin is analog 4
+		  pinMode(XBEE_TX_PIN, INPUT); 
+			xbeeSerial.begin(XBEE_BAUD_RATE);
+		}
+
+		// Reads packet from GCS into buffer via XBee
+		// Returns size of received packet in bytes
+
+		int xbee_read (struct GCS_packet_t *buf)
+		{
+			int i = 0;
+			byte *ptr = (byte *) buf;
+
+			// read packet into buffer
+			while (i < GCS_MAX_PACKET_SIZE && xbeeSerial.available()){
+				ptr[i++] = (byte)xbeeSerial.read();
+			}
+
+		#ifdef XBEE_DEBUG
+			if (i == GCS_MAX_PACKET_SIZE) {
+				Serial.print(buf->next_WP.lat, DEC);
+				Serial.print(" ");
+				Serial.println(buf->next_WP.lng, DEC);
+				Serial.print(" ");
+				Serial.println(buf->next_WP.alt, DEC);
+				Serial.print(" ");
+				Serial.println(buf->checksum, DEC);
+			}
+			else if (i > 0)
+				Serial.println("Didn't finish getting a packet");
+			else
+				Serial.println("i = 0");
+		#endif
+	
+			xbeeSerial.flush();
+
+			//implement a checksum function to ensure data integrity
+			return 	(i == 0 || i < GCS_MAX_PACKET_SIZE) ? 0 :
+							(buf->checksum == (buf->next_WP.lat + buf->next_WP.alt)) ? i : -1;
+		}
+		
+-----------------------------------
+NewSoftSerial library modifications
+-----------------------------------
+
+Since the Ardupilot already uses two of the three pin change interrupt vectors, it was necessary to remove the interrupt handler code for those vectors in the NewSoftSerial cpp file.
+
+The following code was REMOVED:
+		
+		#if defined(PCINT0_vect)
+		ISR(PCINT0_vect)
+		{
+		  NewSoftSerial::handle_interrupt();
+		}
+		#endif
+
+		...
+
+		#if defined(PCINT2_vect)
+		ISR(PCINT2_vect)
+		{
+		  NewSoftSerial::handle_interrupt();
+		}
+		#endif
+
+		#if defined(PCINT3_vect)
+		ISR(PCINT3_vect)
+		{
+		  NewSoftSerial::handle_interrupt();
+		}
+		#endif
+
+-------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
