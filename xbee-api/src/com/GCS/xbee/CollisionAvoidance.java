@@ -1,15 +1,13 @@
+package com.GCS.xbee;
+
+import org.apache.log4j.Logger;
+
 /**
- * CollisionAvoidance.java
- * 
  * Runs a collision avoidance algorithm as a thread for the XBeeGCS to run.
  * Has the ability to transmit a new waypoint to an ArduPilot in the air.
  * 
  * @author Varun Sampath, Chester Hamilton, Andrew Proctor
  */
-package com.GCS.xbee;
-
-import org.apache.log4j.Logger;
-
 class CollisionAvoidance implements Runnable {
 	
 	private XBeeGCS gcs;

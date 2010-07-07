@@ -1,13 +1,3 @@
-/**
- * XBeeGCS.java
- * 
- * The main class for the XBeeGCS.
- * 
- * This class controls XBee communication, and can send and receive packets with XBee-equipped ArduPilots.
- * It maintains a GUI for loading an arbitrary waypoint in air, and can work with a collision avoidance thread for multiple planes.
- * 
- * @author Varun Sampath and Chester Hamilton
- */
 package com.GCS.xbee;
 
 import java.awt.event.ActionEvent;
@@ -38,22 +28,35 @@ import com.rapplogic.xbee.api.zigbee.ZNetRxResponse;
 import com.rapplogic.xbee.api.zigbee.ZNetTxRequest;
 import com.rapplogic.xbee.util.ByteUtils;
 
+/**
+ * The main class for the XBeeGCS.
+ * 
+ * This class controls XBee communication, and can send and receive packets with XBee-equipped ArduPilots.
+ * It maintains a GUI for loading an arbitrary waypoint in air, and can work with a collision avoidance thread for multiple planes.
+ * 
+ * @author Varun Sampath and Chester Hamilton
+ */
 public class XBeeGCS {
 	
-	private final static boolean ENABLE_COLLISION_AVOIDANCE = false;
+	private final boolean ENABLE_COLLISION_AVOIDANCE = false;
 	
-	// class variables
 	private final static Logger log = Logger.getLogger(XBeeGCS.class);	// logger for the log4j system
-	private static XBee xbee;		// the XBee hooked up to this GCS
 	
 	// instance variables
+	private XBee xbee;		// the XBee hooked up to this GCS
 	private HashMap<XBeeAddress64, PlaneData> dataMap;		// collection of all telemetry data indexed by IEEE address
 	private XBeeAddress64 latest;							// latest plane to transmit valid telemetry data
 	private int planeCounter;								// the number of planes
 
-	public XBeeGCS () {
+	/**
+	 * Initializes XBee serial communication, packet listening thread, GUI, and if wanted, collision avoidance thread.
+	 * @throws XBeeException if failing to initialize XBee serial link.
+	 */
+	public XBeeGCS () throws XBeeException {
 		PropertyConfigurator.configure("log4j.properties");
+		// set up the coordinator XBee serial communication
 		xbee = new XBee();
+		xbee.open("/dev/ttyUSB0", 115200);
 		setDataMap(new HashMap<XBeeAddress64, PlaneData>());
 		planeCounter = 0;
 
@@ -97,7 +100,7 @@ public class XBeeGCS {
 	 * @param addr	The 64-bit IEEE address of the sending node
 	 * @param data	The telemetry data sent by the node
 	 */
-	void addData(XBeeAddress64 addr, PlaneData data) {
+	public void addData(XBeeAddress64 addr, PlaneData data) {
 		if (data != null) {
 			// associate a plane number with the incoming data
 			if (!getDataMap().containsKey(addr))
@@ -119,11 +122,14 @@ public class XBeeGCS {
 	 * 
 	 * This function transmits a waypoint in a big endian GCS_packet_t format specified in the modified
 	 * ArduPilot code.  The packet is transmitted synchronously, with an ACK timeout of 5 seconds.
+	 * Note: while Coordinate fields are doubles, they should be large enough numbers (i.e. > 1 million)
+	 * so the ArduPilot can use them.  This method casts the Coordinate fields as 32-bit integers
+	 * and only multiplies the latitude and longitude by 10 and the altitude by 100 for the ArduPilot.
 	 * 
 	 * @param addr	The 64-bit IEEE address of the node to send the waypoint to
 	 * @param wp	The waypoint to send to the node
 	 */
-	void transmit(XBeeAddress64 addr, Coordinate wp) {
+	public void transmit(XBeeAddress64 addr, Coordinate wp) {
 		int waypoint[] = new int[3];
 		int payload[] = new int[16];	//4 int32's
 		
@@ -167,30 +173,29 @@ public class XBeeGCS {
 		log.info("sent " + Arrays.toString(waypoint) + " to Plane " + getDataMap().get(addr).num);
 	}
 	
-	private void exit() {
+	/**
+	 * Closes the XBee serial link
+	 */
+	public void exit() {
 		xbee.close();
-		System.exit(0);
 	}
 
-	public static void main(String[] args) throws InterruptedException {
-		XBeeGCS gcs = new XBeeGCS();
-		// set up the coordinator XBee serial communication
+	/**
+	 * Creates a new XBeeGCS.
+	 * Exits with a fatal error if the XBee serial link cannot be made.
+	 * @param args
+	 */
+	public static void main(String[] args) {
 		try {
-			xbee.open("/dev/ttyUSB0", 115200);
-			// hackish way of making the thread sleep forever.  open to other suggestions...
-			Thread.sleep(Long.MAX_VALUE);
-		}
-		catch (XBeeException e) {
-			e.printStackTrace();
-		}
-		finally {
-			gcs.exit();
+			new XBeeGCS();
+		} catch (XBeeException e) {
+			log.fatal("XBeeGCS: Failed to initialize XBee serial link, exiting.");
+			System.exit(-1);
 		}
 	}
 
 	/**
 	 * Generates a GUI for loading arbitrary waypoints to the latest plane.
-	 *
 	 */
 	private class GUI implements ActionListener {
 		private JTextField text;
@@ -209,6 +214,7 @@ public class XBeeGCS {
 				@Override
 				public void actionPerformed(ActionEvent arg0) {
 					exit();
+					System.exit(0);
 				}
 			});
 
@@ -337,6 +343,4 @@ public class XBeeGCS {
 			return pd;
 		}
 	}
-
-
 }
