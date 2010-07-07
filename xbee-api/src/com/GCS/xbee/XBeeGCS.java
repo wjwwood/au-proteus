@@ -234,7 +234,7 @@ public class XBeeGCS {
 		public void actionPerformed(ActionEvent arg0) {
 			String string = text.getText();
 			Scanner scanner = new Scanner(string);
-			scanner.useDelimiter(", ");
+			scanner.useDelimiter(",");
 			Coordinate wp = new Coordinate();
 			try {
 				wp.x = scanner.nextDouble() * 1000000;
