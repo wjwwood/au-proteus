@@ -104,9 +104,9 @@ public class XBeeGCS {
 		if (data != null) {
 			// associate a plane number with the incoming data
 			if (!getDataMap().containsKey(addr))
-				data.num = ++planeCounter;
+				data.planeID = ++planeCounter;
 			else 
-				data.num = getDataMap().get(addr).num;
+				data.planeID = getDataMap().get(addr).planeID;
 			// update hash map
 			setLatest(addr);
 			log.info(data);
@@ -170,7 +170,7 @@ public class XBeeGCS {
 		log.debug("zb request is " + request.getXBeePacket().getPacket());
 		// undo the multipliers to make logging prettier
 		waypoint[0] /= 10; waypoint[1] /= 10; waypoint[2] /= 100;
-		log.info("sent " + Arrays.toString(waypoint) + " to Plane " + getDataMap().get(addr).num);
+		log.info("sent " + Arrays.toString(waypoint) + " to Plane " + getDataMap().get(addr).planeID);
 	}
 	
 	/**
@@ -183,7 +183,6 @@ public class XBeeGCS {
 	/**
 	 * Creates a new XBeeGCS.
 	 * Exits with a fatal error if the XBee serial link cannot be made.
-	 * @param args
 	 */
 	public static void main(String[] args) {
 		try {
