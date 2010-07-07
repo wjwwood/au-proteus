@@ -3,8 +3,10 @@
  * 
  * The main class for the XBeeGCS.
  * 
- * This class controls XBee communication and reads incoming packets from the ArduPilot.
- * It maintains a GUI for loading an arbitrary waypoint in air, using the CollisionAvoidance class.
+ * This class controls XBee communication, and can send and receive packets with XBee-equipped ArduPilots.
+ * It maintains a GUI for loading an arbitrary waypoint in air, and can work with a collision avoidance thread for multiple planes.
+ * 
+ * @author Varun Sampath and Chester Hamilton
  */
 package com.GCS.xbee;
 
@@ -257,8 +259,6 @@ public class XBeeGCS {
 	/**
 	 * Packet Listener class for receiving data from XBees on ArduPilots.
 	 * Loads new telemetry data into the GCS internal hash map if provided.  Prints all other received packets.
-	 * @author varun
-	 *
 	 */
 	private class GCSPacketListener implements PacketListener {
 

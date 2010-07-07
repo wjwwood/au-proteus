@@ -1,5 +1,8 @@
 package com.GCS.xbee;
 
+/**
+ * A "struct" containing fields for all of the telemetry data received from the ArduPilot
+ */
 class PlaneData {
 	
 	public int num;
