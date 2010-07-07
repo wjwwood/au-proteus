@@ -325,7 +325,7 @@ void read_radio_limits()
 
 	// set initial servo limits for calibration routine
 	// -------------------------------------------------
-	ch1_min = ch1_trim - 340;
+	ch1_min = ch1_trim - 475;
 	ch1_max = ch1_trim + 475;
 
 	ch2_min = ch2_trim - 150;

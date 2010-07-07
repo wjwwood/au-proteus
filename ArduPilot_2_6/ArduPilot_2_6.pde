@@ -358,11 +358,6 @@ void control_loop()
 		case 0:
 			medium_loopCounter++;
 			print_attitude();
-                        Serial.print("\nCH 1 OUT: ");
-                        Serial.print(ch1_out,DEC);
-                        Serial.print("\nCH 1 IN: ");
-                        Serial.print(ch1_in,DEC);
-                        Serial.println();
 			break;
 
 		case 1:
@@ -370,6 +365,12 @@ void control_loop()
 			// only output location if we have GPS lock
 			// ----------------------------------------
 			update_telemetry();
+/*
+                        Serial.print("CH 1 OUT: ");
+                        Serial.print(ch1_out,DEC);
+                        Serial.print(" CH 1 IN: ");
+                        Serial.println(ch1_in,DEC);
+*/
 			break;
 
 		case 2:

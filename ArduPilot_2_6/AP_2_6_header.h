@@ -39,7 +39,7 @@
 //0-9 XXX
 #define POSITION_2 STABILIZE
 //0-10 XXX
-#define POSITION_3 FLY_BY_WIRE_A
+#define POSITION_3 AUTO
 // So why isn't AUTO here by default? Well, please try and run Stabilize first, 
 // then FLY_BY_WIRE_A to verify you have good gains set up correctly 
 // before you try Auto and wreck your plane. I'll sleep better that way...
@@ -189,7 +189,7 @@
 /***************************************/
 //NAV: ROLL GAINS  [Start with changes of no more than 25% at a time]
 //7-1 XXX
-#define NAV_ROLL_P .6					// 	Primary value to tune - overall proportional term determines how aggressively we bank to change heading
+#define NAV_ROLL_P .75					// 	Primary value to tune - overall proportional term determines how aggressively we bank to change heading
 //7-2
 #define NAV_ROLL_I .0					//	roll PID integrator gain (value should generally be low)
 //7-3
