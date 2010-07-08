@@ -15,6 +15,7 @@ __author__ = "William Woodall"
 # Python libraries
 import sys
 import math
+import thread
 from threading import Lock, Timer
 
 # pySerial
@@ -48,11 +49,13 @@ FULL_MODE_CMD = CMD_START+OP_FULL_MODE+CMD_STOP
 
 # Log system, this should be overriden with something like rospy.loginfo or rospy.logerr
 #  I do this in an effort to remove all ros dependant code from this file
+
+logfile = open('proteus-log.txt', 'a')
 def loginfo(msg):
-    print msg
+    print >> logfile,  msg
     
 def logerr(msg):
-    print >> sys.stderr, msg
+    print >> logfile, "Err: " + msg
 
 ###  Classes  ###
 class Proteus(object):
@@ -85,8 +88,18 @@ class Proteus(object):
         self.running = True
         self.com_lock = Lock()
         
-        import thread
-        thread.start_new_thread(self.readSerial)
+        self.serial_reader = thread.start_new_thread(self.readSerial, (self.serial,))
+        
+    def stopCS(self):
+        self.running = True
+        self.serial_reader = thread.start_new_thread(self.readSerial, (self.serial,))
+        
+    def startCS(self):
+        self.running = False
+        
+    def close(self):
+        self.running = False
+        self.serial.close()
     
     def pollIRSensors(self):
         """Polls the IR Sensors on a regular period
@@ -100,10 +113,13 @@ class Proteus(object):
             self.ir_timer.start()
         ir_data = [0,0,0,0,0,0]
         data = None
-        try:            
+        try:          
+            self.startCS() #Critical Section
             # Request for the IR data
             self.write(CMD_START+OP_SENSOR+SENSOR_IR+CMD_STOP)
             # Wait for the proper response
+            data = self.read(12)
+            self.stopCS() #End Critical Section
             # Parse the data
             if data != None and len(data) == 12:
                 # Encode the data as HEX for processing
@@ -135,10 +151,12 @@ class Proteus(object):
         odom_data = [0,0,None]
         data = None
         try:
+            self.startCS() #Critical Section
             # Request for the IR data
             self.write(CMD_START+OP_SENSOR+SENSOR_ODOM+CMD_STOP)
             # Wait for the proper response
             data = self.read(5)
+            self.stopCS() #End Critical Section
             # Parse the data
             if data != None and len(data) == 5:
                 # Encode the data as HEX for processing
@@ -156,7 +174,7 @@ class Proteus(object):
         """ Reads the IR data once
             returns - [tach, steering angle, motor stall]
             tach - is in meters
-            steering angle - is in radians
+            steering angle - is in degrees
             motor stall - is True, False, or None if no data is available
         """
         if not self.started:
@@ -165,8 +183,10 @@ class Proteus(object):
         elif self.serial.isOpen():
             odom_data = [0,0,None]
             data = None
+            self.startCS() #Critical Section
             self.write(CMD_START+OP_SENSOR+SENSOR_ODOM+CMD_STOP)
             data = self.read(5)
+            self.stopCS() # End Critical Section
             
             # Parse the data
             if data != None and len(data) == 5:
@@ -174,7 +194,22 @@ class Proteus(object):
                 data = data.encode("HEX")
                 # Extract the Tach
                 odom_data[0] = (int(data[0:4], 16)) * 0.0012833
-            
+                temp = (int(data[4:8], 16)) * 0.0001
+                temp = temp / 6.28318
+                temp *= 360.0
+                temp -= 8.25
+                if temp > 180.0:
+                    temp = temp - 360.0
+                if temp == -8.25: temp = 0.0
+                odom_data[1] = temp
+                temp = (int(data[8:10], 16))
+                if temp != None:
+                    if temp > 0:
+                        odom_data[2] = True
+                    elif temp == 0:
+                        odom_data[2] = False
+                else:
+                    odom_data[2] = None
             print odom_data
         else:
             logerr('Error: Serial port not open')
@@ -192,8 +227,6 @@ class Proteus(object):
             self.write(SAFE_MODE_CMD)
         else:
             logerr('Error: Serial port not open')
-            
-        print self.readline()
 			
     def safe(self):
         """Sets the proteus in safe mode, making sure that drive commands come regularly"""
@@ -204,8 +237,6 @@ class Proteus(object):
         else:
             logerr('Error: Serial port not open')
             
-        print self.readline()
-            
     def full(self):
         """Sets the proteus in full mode, the motor might get stuck on."""
         if self.started == False:
@@ -214,14 +245,12 @@ class Proteus(object):
             self.write(FULL_MODE_CMD)
         else:
             logerr('Error: Serial port not open')
-            
-        print self.readline()
         
     def read(self, value):
         "Read X number of values from the com with a lock."
         with self.com_lock:
             temp = self.serial.read(value)
-            loginfo("Read: " + temp + "\n")
+            if temp: loginfo("Read: " + temp)
             #log temp to file
             return temp
             
@@ -229,13 +258,13 @@ class Proteus(object):
         "Reads a line from the com with a lock"
         with self.com_lock:
             temp = self.serial.readline()
-            loginfo("Readline: " + temp + "\n")
+            if temp: loginfo("Readline: " + temp)
             return temp
             
     def write(self, value):
         "Write's to the com with a lock"
         with self.com_lock:
-            loginfo("Writing: " + value + "\n")
+            loginfo("Writing: " + value)
             self.serial.write(value)
 
     def stop(self):
@@ -278,11 +307,13 @@ class Proteus(object):
         cmd += OP_SENSOR
         cmd += SENSOR_SERVO
         cmd += CMD_STOP
+        self.startCS() #Critical Section
         if self.serial.isOpen():
             self.write(cmd)
         else:
             logerr('Error: Serial port not open')
         data = self.read(2)
+        self.stopCS() # End Critical Section
         data = data.encode("HEX")
         servo_data = int(data[0:4], 16)
         print servo_data
@@ -330,7 +361,7 @@ class Proteus(object):
         if self.serial.isOpen():
             self.write(cmd)
 
-    def readSerial(self):
+    def readSerial(self, serial):
         "Read's all com activity"
         while self.running:
             temp = self.readline()
