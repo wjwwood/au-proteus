@@ -73,8 +73,6 @@ class Proteus(object):
         # Setup some variables
         self.started = False
         
-        self.sensor_lock = Lock()
-        
         self.onOdomData = None
         self.odom_timer = None
         
@@ -88,7 +86,7 @@ class Proteus(object):
         self.com_lock = Lock()
         
         import thread
-        thread.start_new_thread(self.readSerial, (self.serial,))
+        thread.start_new_thread(self.readSerial)
     
     def pollIRSensors(self):
         """Polls the IR Sensors on a regular period
@@ -102,19 +100,10 @@ class Proteus(object):
             self.ir_timer.start()
         ir_data = [0,0,0,0,0,0]
         data = None
-        try:
-            # Acquire the sensor lock to prevent sensors from polling at the same time
-            self.sensor_lock.acquire()
+        try:            
             # Request for the IR data
             self.write(CMD_START+OP_SENSOR+SENSOR_IR+CMD_STOP)
             # Wait for the proper response
-            data = self.read(12)
-        except Exception as err:
-            logError(sys.exc_info(), logerr, "Exception while polling IR Sensors:")
-        finally:
-            # Release the sensor lock
-            self.sensor_lock.release()
-        try:
             # Parse the data
             if data != None and len(data) == 12:
                 # Encode the data as HEX for processing
@@ -146,18 +135,10 @@ class Proteus(object):
         odom_data = [0,0,None]
         data = None
         try:
-            # Acquire the sensor lock to prevent sensors from polling at the same time
-            self.sensor_lock.acquire()
             # Request for the IR data
             self.write(CMD_START+OP_SENSOR+SENSOR_ODOM+CMD_STOP)
             # Wait for the proper response
             data = self.read(5)
-        except Exception as err:
-            logError(sys.exc_info(), logerr, "Exception while polling Odometry:")
-        finally:
-            # Release the sensor lock
-            self.sensor_lock.release()
-        try:
             # Parse the data
             if data != None and len(data) == 5:
                 # Encode the data as HEX for processing
@@ -182,20 +163,19 @@ class Proteus(object):
             print "Start the Proteus and try again."
             return
         elif self.serial.isOpen():
-            with self.sensor_lock:
-                odom_data = [0,0,None]
-                data = None
-                self.write(CMD_START+OP_SENSOR+SENSOR_ODOM+CMD_STOP)
-                data = self.read(5)
-                
-                # Parse the data
-                if data != None and len(data) == 5:
-                    # Encode the data as HEX for processing
-                    data = data.encode("HEX")
-                    # Extract the Tach
-                    odom_data[0] = (int(data[0:4], 16)) * 0.0012833
-                
-                print odom_data
+            odom_data = [0,0,None]
+            data = None
+            self.write(CMD_START+OP_SENSOR+SENSOR_ODOM+CMD_STOP)
+            data = self.read(5)
+            
+            # Parse the data
+            if data != None and len(data) == 5:
+                # Encode the data as HEX for processing
+                data = data.encode("HEX")
+                # Extract the Tach
+                odom_data[0] = (int(data[0:4], 16)) * 0.0012833
+            
+            print odom_data
         else:
             logerr('Error: Serial port not open')
     
@@ -228,7 +208,6 @@ class Proteus(object):
             
     def full(self):
         """Sets the proteus in full mode, the motor might get stuck on."""
-        
         if self.started == False:
             print "Start the Proteus and try again."
         elif self.serial.isOpen():
@@ -239,17 +218,24 @@ class Proteus(object):
         print self.readline()
         
     def read(self, value):
+        "Read X number of values from the com with a lock."
         with self.com_lock:
             temp = self.serial.read(value)
+            loginfo("Read: " + temp + "\n")
             #log temp to file
             return temp
             
     def readline(self):
+        "Reads a line from the com with a lock"
         with self.com_lock:
-            return self.serial.readline()
+            temp = self.serial.readline()
+            loginfo("Readline: " + temp + "\n")
+            return temp
             
     def write(self, value):
+        "Write's to the com with a lock"
         with self.com_lock:
+            loginfo("Writing: " + value + "\n")
             self.serial.write(value)
 
     def stop(self):
@@ -267,7 +253,7 @@ class Proteus(object):
         # Join Threads
 		
     def led(self, which):
-
+        "TODO: doc for led"
         if which < 0:
             temp = abs(int(which))
             temp = temp - 1
@@ -286,7 +272,7 @@ class Proteus(object):
             logerr('Error: Serial port not open')
         
     def pollServo(self):
-
+        "TODO: Doc for pollServo"
         cmd = ""
         cmd += CMD_START
         cmd += OP_SENSOR
@@ -344,11 +330,11 @@ class Proteus(object):
         if self.serial.isOpen():
             self.write(cmd)
 
-    def readSerial(self, serial):
+    def readSerial(self):
+        "Read's all com activity"
         while self.running:
             temp = self.readline()
             if temp != "":
                 print temp
         print "Read Serial Done"
 
-	
