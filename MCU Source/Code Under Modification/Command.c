@@ -53,6 +53,9 @@ void periodicSafeMotor(){
   motorSafe = 0;
 }    
 
+//These are functions that will toggle certain LED's
+//This is a more lightweight method for getting feedback than a message over SCI
+//They can be used with the scheduler at 1 or more Hz to create a blinking LED
 void blinkStartLED(){
     if(st > 0){
         LED_GREEN2 = 0;
@@ -86,26 +89,25 @@ void blinkSubErrLED(){
     }
 }
 
-void watchdog(){
-    if(dogOn != 0){
-        if(wdn > 0 && wdf == 0){
-            LED_YELLOW2 = 1;
-            wdn = 1;
-        }
-        else{
-            LED_YELLOW2 = 0;
-            wdn = 0;
-        }
+void watchdogOn(){
+    if(wdn > 0){
+        LED_YELLOW2 = 0;
+        wdn = 0;
     }
-    else if(dogOff != 0){
-        if(wdf > 0){
-            LED_ORANGE2 = 1;
-            wdf = 1;
-        }
-        else{
-            LED_ORANGE2 = 0;
-            wdf = 0;
-        }
+    else{
+        LED_YELLOW2 = 1;
+        wdn = 1;
+    }
+}
+
+void watchdogOff(){    
+    if(wdf > 0){
+        LED_ORANGE2 = 0;
+        wdf = 0;
+    }
+    else{
+        LED_ORANGE2 = 1;
+        wdf = 1;
     }
 }
 
@@ -124,9 +126,9 @@ void InterfaceFG(void) {
         if (started == 0) {
             started = Scheduler_AddEvent_hz(&blinkStartLED,1);
         }
-        if(dogOff == 0 && dogOn == 0){
+        if((mode != PROTEUS_MODE_SAFE) && (mode != PROTEUS_MODE_FULL)){
             mode = PROTEUS_MODE_PASSIVE;
-            dogOff = Scheduler_AddEvent_hz(&watchdog,1);
+            dogOff = Scheduler_AddEvent_hz(&watchdogOff,1);
         }
         break;  
       case PROTEUS_OPCODE_BAUD :
@@ -136,14 +138,16 @@ void InterfaceFG(void) {
         //what does this command do?
         break;
       case PROTEUS_OPCODE_SAFE :
-        mode = PROTEUS_MODE_SAFE;
         safeId = Scheduler_AddEvent_hz(&periodicSafeMotor,1); //at 1hz
         if(dogOn == 0){
             if(dogOff != 0)
                 (unsigned char) Scheduler_RemoveEvent(dogOff); 
+            LED_ORANGE2 = 0;
+            wdf = 0;
             dogOff = 0;
-            dogOn = Scheduler_AddEvent_hz(&watchdog,1);
+            dogOn = Scheduler_AddEvent_hz(&watchdogOn,1);
         }
+        mode = PROTEUS_MODE_SAFE;
         break;
       case PROTEUS_OPCODE_FULL : 
         if(mode == PROTEUS_MODE_SAFE) {
@@ -152,9 +156,11 @@ void InterfaceFG(void) {
 		mode = PROTEUS_MODE_FULL;
         if(dogOff == 0){
             if(dogOn != 0)
-                (unsigned char) Scheduler_RemoveEvent(dogOn); 
+                (unsigned char) Scheduler_RemoveEvent(dogOn);
+            LED_YELLOW2 = 0;
+            wdn = 0; 
             dogOn = 0;
-            dogOff = Scheduler_AddEvent_hz(&watchdog,1);
+            dogOff = Scheduler_AddEvent_hz(&watchdogOff,1);
         }
         break;   
       case PROTEUS_OPCODE_STOP : 
