@@ -197,7 +197,6 @@ class Proteus(object):
                 temp = (int(data[4:8], 16)) * 0.0001
                 temp = temp / 6.28318
                 temp *= 360.0
-                temp -= 8.25
                 if temp > 180.0:
                     temp = temp - 360.0
                 if temp == -8.25: temp = 0.0
