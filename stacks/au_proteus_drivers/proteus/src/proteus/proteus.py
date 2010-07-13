@@ -195,8 +195,8 @@ class Proteus(object):
                 # Extract the Tach
                 odom_data[0] = (int(data[0:4], 16)) * 0.0012833
                 temp = (int(data[4:8], 16)) * 0.0001
-                temp = temp / 6.28318
-                temp *= 360.0
+                temp = temp / 3.14159
+                temp *= 180.0
                 if temp > 180.0:
                     temp = temp - 360.0
                 if temp == -8.25: temp = 0.0
@@ -343,7 +343,7 @@ class Proteus(object):
             direction = 360 + direction*60 # direction should be negative
         else:
             direction *= 60
-        direction = math.radians(direction)
+        direction = (direction * 3.14159) / 180
         direction *= 10000
         direction = int(direction)
         dir_1 = direction >> 8

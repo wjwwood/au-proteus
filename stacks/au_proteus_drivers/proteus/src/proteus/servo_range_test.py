@@ -8,9 +8,11 @@ p = proteus.Proteus("Com3")
 
 p.start()
 
-for i in range(-160,430):
-    temp = i / 1000.0
-    p.move(0,temp)
-    print temp
-    p.readOdom()
-    time.sleep(0.8)
+for i in range(-148,420):
+    if ((i % 4) == 0):
+        temp = i / 1000.0 # I figured out that this should cover all the unique return values.
+        p.move(0,temp)
+        print temp
+        p.readOdom()
+        time.sleep(0.2)
+        
