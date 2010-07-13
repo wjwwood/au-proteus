@@ -1,3 +1,4 @@
+#ifdef XBEE_READ
 // Setup for XBee TX
 void init_xbee()
 {
@@ -41,3 +42,4 @@ int xbee_read (struct GCS_packet_t *buf)
 	return 	(i == 0 || i < GCS_MAX_PACKET_SIZE) ? 0 :
 					(buf->checksum == (buf->next_WP.lat + buf->next_WP.alt)) ? i : -1;
 }
+#endif

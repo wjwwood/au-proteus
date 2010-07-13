@@ -71,8 +71,10 @@ void reached_waypoint()
 		// -------------------------------------
 		waypoint_event(EVENT_SET_NEW_WAYPOINT_INDEX);
 		
+#ifdef XBEE_READ
 		// XXX: mod to remove arbitrary waypoint
 		fakeWP = false;
+#endif
 
 		// load next WP
 		// ------------
@@ -296,6 +298,7 @@ void reset_waypoint_index(void){
 }
 
 
+#ifdef XBEE_READ
 // run this whenever we have a "fake" WP, due to collision avoidance
 // -------------------------------------
 void load_waypoint(struct Location *wp)
@@ -333,3 +336,4 @@ void load_waypoint(struct Location *wp)
 	precalc_waypoint_distance();
 	crosstrack_bearing  =  get_bearing(&current_loc, &next_WP);
 }
+#endif

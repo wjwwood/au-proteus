@@ -31,7 +31,11 @@ void print_position(void)
 			longUnion.dword = target_bearing/100;
 			Serial.write(longUnion.byte,4);
 
+#ifdef XBEE_READ
 			longUnion.dword = (fakeWP) ? 997 : wp_index;
+#else
+			longUnion.dword = wp_index;
+#endif
 			Serial.write(longUnion.byte,4);//Actually is the waypoint.
 
 			longUnion.dword = wp_distance;

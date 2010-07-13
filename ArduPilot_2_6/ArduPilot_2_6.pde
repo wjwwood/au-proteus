@@ -171,8 +171,10 @@ byte 	wp_total			= 0;	// # of waypoints
 byte 	wp_index			= 0;	// Current WP index, -1 is RTL
 float 	scaleLongUp			= 0;	// used to reverse longtitude scaling
 
+#ifdef XBEE_READ
 // XXX: Added for arbitrary waypoint loading
 boolean fakeWP = false;
+#endif
 
 // 3D Location vectors
 // -------------------
@@ -365,6 +367,12 @@ void control_loop()
 			// only output location if we have GPS lock
 			// ----------------------------------------
 			update_telemetry();
+/*
+                        Serial.print("CH 1 OUT: ");
+                        Serial.print(ch1_out,DEC);
+                        Serial.print(" CH 1 IN: ");
+                        Serial.println(ch1_in,DEC);
+*/
 			break;
 
 		case 2:
