@@ -39,7 +39,7 @@
                                         //increasing causes robot to report higher steering angles for servo positions when turning left
                                         //as a result, higher values cause robot to turn less when seeking an odometry target
 
-#define SERVO_STEERING_RIGHT_CALIB -5000 //affects the raw->steering_angle converstion when steering to the right
+#define SERVO_STEERING_RIGHT_CALIB -5200 //affects the raw->steering_angle converstion when steering to the right
                                         //increasing causes robot to report higher steering angles for servo positions when turning right
                                         //as a result, higher values cause robot to turn less when seeking an odometry target
 

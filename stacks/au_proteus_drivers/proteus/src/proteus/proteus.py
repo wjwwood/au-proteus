@@ -16,6 +16,7 @@ __author__ = "William Woodall"
 import sys
 import math
 import thread
+import time
 from threading import Lock, Timer
 
 # pySerial
@@ -134,7 +135,22 @@ class Proteus(object):
             # Pass the data along to the handler
             if self.onIRSensorData:
                 self.onIRSensorData(ir_data)
-    
+                
+    def testServo(self, low, high):
+        """ Takes the lower and higher limits for a test of servo range
+            in the form of: testServo(x, y)
+            will loop through the values and effectively call the function
+            self.move(0,0.x) -> self.move(0, 0.y) and values in between"""
+        
+        for i in range(-148,420):
+            if ((i % 4) == 0):
+                temp = i / 1000.0 # I figured out that this should cover all the unique return values.
+                self.move(0,temp)
+                print temp
+                self.readOdom()
+                time.sleep(0.2)
+                
+                
     def pollOdom(self):
         """Polls the odometry on a regular period
             returns - [tach, steering angle, motor stall]
@@ -195,9 +211,8 @@ class Proteus(object):
                 # Extract the Tach
                 odom_data[0] = (int(data[0:4], 16)) * 0.0012833
                 temp = (int(data[4:8], 16)) * 0.0001
-                temp = temp / 6.28318
-                temp *= 360.0
-                temp -= 8.25
+                temp = temp / 3.14159
+                temp *= 180.0
                 if temp > 180.0:
                     temp = temp - 360.0
                 if temp == -8.25: temp = 0.0
@@ -341,10 +356,10 @@ class Proteus(object):
         elif direction < -1.0:
             direction = -1.0
         if direction < 0:
-            direction = 360 + direction*60 # direction should be negative
+            direction = 375 + direction*45 # direction should be negative
         else:
-            direction *= 60
-        direction = math.radians(direction)
+            direction *= 45
+        direction = (direction * 3.14159) / 180
         direction *= 10000
         direction = int(direction)
         dir_1 = direction >> 8
