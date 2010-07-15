@@ -136,21 +136,38 @@ class Proteus(object):
             if self.onIRSensorData:
                 self.onIRSensorData(ir_data)
                 
-    def testServo(self, low, high):
+    def testTurning(self, low, high, interval, wait):
         """ Takes the lower and higher limits for a test of servo range
-            in the form of: testServo(x, y)
+            in the form of: testTurning(x, y, i, d)
+            x and y should be integers between -1000 and 1000
             will loop through the values and effectively call the function
-            self.move(0,0.x) -> self.move(0, 0.y) and values in between"""
+            move(0,n) where n = (x/1000.0, x+i /1000.0, ... y/1000.0)
+            The parameter d determines any amount of time in seconds needed
+            between readings (up to 10.0s).  Floating point is valid for subsecond precision.
+            Will display the value sent to the direction parameter for move(speed, direction)
+            then will return an Odometry Packet."""
         
-        for i in range(-148,420):
-            if ((i % 4) == 0):
-                temp = i / 1000.0 # I figured out that this should cover all the unique return values.
-                self.move(0,temp)
+        if (interval == None or interval >= (high - low)):
+            interval = 25
+        if (low == None or low >= (high - interval)):
+            low = -1000
+        if (high == None or high <= low):
+            high = 1000
+        if (wait == None or wait > 10.0):
+            wait = 10.0
+        if (wait <= 0.0):
+            wait = 0.0
+            
+        for i in range(low, high + 1):
+            if ((i % interval) == 0):
+                temp = i / 1000.0 # I figured out that this should cover the dynamic range.
+                self.move(temp,temp)
                 print temp
                 self.readOdom()
-                time.sleep(0.2)
+                time.sleep(wait)
                 
-                
+        self.move(0,0)
+    
     def pollOdom(self):
         """Polls the odometry on a regular period
             returns - [tach, steering angle, motor stall]
@@ -179,6 +196,20 @@ class Proteus(object):
                 data = data.encode("HEX")
                 # Extract the Tach
                 odom_data[0] = (int(data[0:4], 16)) * 0.0012833
+                temp = (int(data[4:8], 16)) * 0.0001
+                temp = temp / 3.14159
+                temp *= 180.0
+                if temp > 180.0:
+                    temp = temp - 375.0
+                odom_data[1] = temp * 1.5
+                temp = (int(data[8:10], 16))
+                if temp != None:
+                    if temp > 0:
+                        odom_data[2] = True
+                    elif temp == 0:
+                        odom_data[2] = False
+                else:
+                    odom_data[2] = None
         except Exception as err:
             logError(sys.exc_info(), logerr, "Exception while polling Odometry:")
         finally:
@@ -214,9 +245,8 @@ class Proteus(object):
                 temp = temp / 3.14159
                 temp *= 180.0
                 if temp > 180.0:
-                    temp = temp - 360.0
-                if temp == -8.25: temp = 0.0
-                odom_data[1] = temp
+                    temp = temp - 375.0
+                odom_data[1] = temp * 1.4
                 temp = (int(data[8:10], 16))
                 if temp != None:
                     if temp > 0:
@@ -244,7 +274,8 @@ class Proteus(object):
             logerr('Error: Serial port not open')
 			
     def safe(self):
-        """Sets the proteus in safe mode, making sure that drive commands come regularly"""
+        """Sets the proteus in safe mode, making sure that move commands come regularly
+        Safe mode is indicated by a Blinking YELLOW LED #2"""
         if self.started == False:
             print "Start the Proteus and try again."
         elif self.serial.isOpen():
@@ -253,7 +284,8 @@ class Proteus(object):
             logerr('Error: Serial port not open')
             
     def full(self):
-        """Sets the proteus in full mode, the motor might get stuck on."""
+        """Sets the proteus in full mode, the motor might get stuck on.
+        Full mode is indicated by a Blinking ORANGE LED #2"""
         if self.started == False:
             print "Start the Proteus and try again."
         elif self.serial.isOpen():
@@ -356,9 +388,9 @@ class Proteus(object):
         elif direction < -1.0:
             direction = -1.0
         if direction < 0:
-            direction = 375 + direction*45 # direction should be negative
+            direction = 375 + direction*22 # direction should be negative
         else:
-            direction *= 45
+            direction *= 22
         direction = (direction * 3.14159) / 180
         direction *= 10000
         direction = int(direction)
@@ -377,10 +409,13 @@ class Proteus(object):
             self.write(cmd)
 
     def readSerial(self, serial):
-        "Read's all com activity"
+        """Read's all com activity
+        Indicated by LED_ORANGE1"""
+        self.led(6)
         while self.running:
             temp = self.readline()
             if temp != "":
                 print temp
-        print "Read Serial Done"
+                self.led(6)
+        self.led(-6)
 
