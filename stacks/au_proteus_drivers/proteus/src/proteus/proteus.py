@@ -161,7 +161,7 @@ class Proteus(object):
         for i in range(low, high + 1):
             if ((i % interval) == 0):
                 temp = i / 1000.0 # I figured out that this should cover the dynamic range.
-                self.move(temp,temp)
+                self.move(0,temp)
                 print temp
                 self.readOdom()
                 time.sleep(wait)
