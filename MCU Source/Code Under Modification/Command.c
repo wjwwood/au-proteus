@@ -133,6 +133,25 @@ void InterfaceFG(void) {
         break;  
       case PROTEUS_OPCODE_BAUD :
         //change SCI baud rate
+        u_8 = (inFromSerial[cmd_read_idx][1] & 0xFF);
+		switch(u_8) {
+            case BAUD115200:
+                SCI_Init(SCI_X86, 115200);
+                break;
+            
+            case BAUD57600:
+                SCI_Init(SCI_X86, 57600);
+                break;
+                
+            case BAUD38400:
+                SCI_Init(SCI_X86, 38400);
+                break;
+        }
+        i = 0;
+        while(i < 32){
+        i++;
+        }
+        SCI_OutString(SCI_X86, "AU-Proteus SCI: Baud Rate Changed Successfully");
         break;
       case PROTEUS_OPCODE_CONTROL :
         //what does this command do?

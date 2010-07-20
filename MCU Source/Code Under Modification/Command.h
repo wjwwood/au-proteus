@@ -34,6 +34,11 @@
 
 #define PROTEUS_DELAY_MODECHANGE_MS       5
 
+/*Baud Rate Codes*/
+#define BAUD115200  0x03
+#define BAUD57600   0x02
+#define BAUD38400   0x01
+
 enum{
   PROTEUS_MODE_OFF,                  
   PROTEUS_MODE_PASSIVE,              

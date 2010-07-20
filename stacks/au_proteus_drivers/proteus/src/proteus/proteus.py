@@ -31,6 +31,7 @@ CMD_START       = '\x24' # $
 CMD_STOP        = '\x0A' # LF
 
 OP_START        = '\x61' # a
+OP_BAUD         = '\x62' # b
 OP_STOP         = '\x66' # f
 OP_DRIVE        = '\x67' # g
 OP_SAFE_MODE    = '\x64' # d
@@ -38,15 +39,22 @@ OP_SENSOR       = '\x69' # i
 OP_LEDS			= '\x68' # h
 OP_FULL_MODE    = '\x65' # e
 
+# Baud Rate Codes
+BAUD115200      = '\x03' # b00000011
+BAUD57600       = '\x02' # b00000010
+BAUD38400       = '\x01' # b00000001
+
+# Sensor Codes
 SENSOR_ODOM     = '\x01' # b00000001
 SENSOR_IR       = '\x02' # b00000010
 SENSOR_SERVO    = '\x06' # b00000110
 SENSOR_COMPASS  = '\x04' # b00000100
 
-START_CMD     = CMD_START+OP_START+CMD_STOP
-STOP_CMD      = CMD_START+OP_STOP+CMD_STOP
-SAFE_MODE_CMD = CMD_START+OP_SAFE_MODE+CMD_STOP
-FULL_MODE_CMD = CMD_START+OP_FULL_MODE+CMD_STOP
+# Pre Assembled Commands
+START_CMD       = CMD_START+OP_START+CMD_STOP
+STOP_CMD        = CMD_START+OP_STOP+CMD_STOP
+SAFE_MODE_CMD   = CMD_START+OP_SAFE_MODE+CMD_STOP
+FULL_MODE_CMD   = CMD_START+OP_FULL_MODE+CMD_STOP
 
 # Log system, this should be overriden with something like rospy.loginfo or rospy.logerr
 #  I do this in an effort to remove all ros dependant code from this file
@@ -101,6 +109,42 @@ class Proteus(object):
     def close(self):
         self.running = False
         self.serial.close()
+        
+    def changeBaud(self, which):
+        """ Use the following values as the parameter to change the baud-rate of the Proteus accordingly
+        This change will be wiped out upon a restart of the robot
+        1: 38400 
+        2: 57600 
+        3: 115200 """
+        
+        if which == (1 or 38400): 
+            temp = BAUD38400
+            baud = 38400
+            print "New Baud: 38400"
+        elif which == (2 or 57600): 
+            temp = BAUD57600
+            baud = 57600
+            print "New Baud: 57600"
+        elif which == (3 or 115200): 
+            temp = BAUD115200
+            baud = 115200
+            print "New Baud: 115200"
+        else: 
+            print "Invalid entry: Enter 1, 2, 3 or 38400, 57600, 115200 \nSetting Baud to 57600"
+            temp = BAUD57600
+        
+        cmd = ""
+        cmd += CMD_START
+        cmd += OP_BAUD
+        cmd += chr(temp & 0xFF)
+        cmd += CMD_STOP
+        if self.serial.isOpen():
+            self.write(cmd)
+        else:
+            logerr('Error: Serial port not open')
+        
+        self.serial.baudrate = baud
+        
     
     def pollIRSensors(self):
         """Polls the IR Sensors on a regular period
