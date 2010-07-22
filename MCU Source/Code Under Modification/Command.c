@@ -148,7 +148,7 @@ void InterfaceFG(void) {
                 break;
         }
         i = 0;
-        while(i < 32){
+        while(i < 255){
         i++;
         }
         SCI_OutString(SCI_X86, "AU-Proteus SCI: Baud Rate Changed Successfully");

@@ -40,9 +40,9 @@ OP_LEDS			= '\x68' # h
 OP_FULL_MODE    = '\x65' # e
 
 # Baud Rate Codes
-BAUD115200      = '\x03' # b00000011
-BAUD57600       = '\x02' # b00000010
-BAUD38400       = '\x01' # b00000001
+BAUD115200      = 0x03 # b00000011
+BAUD57600       = 0x02 # b00000010
+BAUD38400       = 0x01 # b00000001
 
 # Sensor Codes
 SENSOR_ODOM     = '\x01' # b00000001
@@ -94,20 +94,8 @@ class Proteus(object):
         self.onIRSensorData = None
         self.ir_timer = None
         
-        self.running = True
-        self.com_lock = Lock()
-        
-        self.serial_reader = thread.start_new_thread(self.readSerial, (self.serial,))
-        
-    def stopCS(self):
-        self.running = True
-        self.serial_reader = thread.start_new_thread(self.readSerial, (self.serial,))
-        
-    def startCS(self):
-        self.running = False
         
     def close(self):
-        self.running = False
         self.serial.close()
         
     def changeBaud(self, which):
@@ -159,12 +147,10 @@ class Proteus(object):
         ir_data = [0,0,0,0,0,0]
         data = None
         try:          
-            self.startCS() #Critical Section
             # Request for the IR data
             self.write(CMD_START+OP_SENSOR+SENSOR_IR+CMD_STOP)
             # Wait for the proper response
             data = self.read(12)
-            self.stopCS() #End Critical Section
             # Parse the data
             if data != None and len(data) == 12:
                 # Encode the data as HEX for processing
@@ -191,6 +177,8 @@ class Proteus(object):
             Will display the value sent to the direction parameter for move(speed, direction)
             then will return an Odometry Packet."""
         
+        
+        
         if (interval == None or interval >= (high - low)):
             interval = 25
         if (low == None or low >= (high - interval)):
@@ -205,13 +193,14 @@ class Proteus(object):
         for i in range(low, high + 1):
             if ((i % interval) == 0):
                 temp = i / 1000.0 # I figured out that this should cover the dynamic range.
-                self.move(0,temp)
+                self.move(temp,temp)
                 print temp
                 self.readOdom()
                 time.sleep(wait)
                 
         self.move(0,0)
-    
+        
+        
     def pollOdom(self):
         """Polls the odometry on a regular period
             returns - [tach, steering angle, motor stall]
@@ -228,12 +217,10 @@ class Proteus(object):
         odom_data = [0,0,None]
         data = None
         try:
-            self.startCS() #Critical Section
             # Request for the IR data
             self.write(CMD_START+OP_SENSOR+SENSOR_ODOM+CMD_STOP)
             # Wait for the proper response
             data = self.read(5)
-            self.stopCS() #End Critical Section
             # Parse the data
             if data != None and len(data) == 5:
                 # Encode the data as HEX for processing
@@ -274,17 +261,21 @@ class Proteus(object):
         elif self.serial.isOpen():
             odom_data = [0,0,None]
             data = None
-            self.startCS() #Critical Section
             self.write(CMD_START+OP_SENSOR+SENSOR_ODOM+CMD_STOP)
             data = self.read(5)
-            self.stopCS() # End Critical Section
             
             # Parse the data
             if data != None and len(data) == 5:
                 # Encode the data as HEX for processing
                 data = data.encode("HEX")
                 # Extract the Tach
-                odom_data[0] = (int(data[0:4], 16)) * 0.0012833
+                temp = (int(data[0:4], 16))
+                if (temp & 0x8000) > 0:
+                    temp = 65535 - temp
+                    temp *= -1
+                    temp = temp * 0.0012833
+                else: temp = (int(data[0:4], 16)) * 0.0012833
+                odom_data[0] = temp
                 temp = (int(data[4:8], 16)) * 0.0001
                 temp = temp / 3.14159
                 temp *= 180.0
@@ -299,7 +290,7 @@ class Proteus(object):
                         odom_data[2] = False
                 else:
                     odom_data[2] = None
-            print odom_data
+            print "ODOM: " + repr(odom_data)
         else:
             logerr('Error: Serial port not open')
     
@@ -338,39 +329,44 @@ class Proteus(object):
             logerr('Error: Serial port not open')
         
     def read(self, value):
-        "Read X number of values from the com with a lock."
-        with self.com_lock:
-            temp = self.serial.read(value)
-            if temp: loginfo("Read: " + temp)
-            #log temp to file
-            return temp
+        "Read X number of values from the com.  Logs the values"
+        
+        temp = self.serial.read(value)
+        if temp: 
+            loginfo("Read: " + temp)
+            for x in temp:
+                loginfo("Hex: " + hex(ord(x)))
+        return temp
             
     def readline(self):
-        "Reads a line from the com with a lock"
-        with self.com_lock:
-            temp = self.serial.readline()
-            if temp: loginfo("Readline: " + temp)
-            return temp
+        "Reads a line from the com, logs it"
+        
+        temp = self.serial.readline()
+        if temp: 
+            loginfo("Readline: " + temp)
+            for x in temp:
+                loginfo("Hex: " + hex(ord(x)))
+        return temp
             
     def write(self, value):
-        "Write's to the com with a lock"
-        with self.com_lock:
-            loginfo("Writing: " + value)
-            self.serial.write(value)
+        "Writes to the com, after clearing the buffer, and logs it"
+        
+        self.clearBuffer()
+        
+        loginfo("Writing: " + value)
+        self.serial.write(value)
 
     def stop(self):
-        """Sets the proteus into stop mode cleans up, joins threads"""
+        """Sets the proteus into stop mode cleans up"""
     
         self.move(0,0) # Stop the motors
         self.started = False
-        # Stop any polling threads
         
         # Send stop cmd to Proteus
         if self.serial.isOpen():
             self.write(STOP_CMD)
         else:
             logerr('Error: Serial port not open')
-        # Join Threads
 		
     def led(self, which):
         "TODO: doc for led"
@@ -391,23 +387,6 @@ class Proteus(object):
         else:
             logerr('Error: Serial port not open')
         
-    def pollServo(self):
-        "TODO: Doc for pollServo"
-        cmd = ""
-        cmd += CMD_START
-        cmd += OP_SENSOR
-        cmd += SENSOR_SERVO
-        cmd += CMD_STOP
-        self.startCS() #Critical Section
-        if self.serial.isOpen():
-            self.write(cmd)
-        else:
-            logerr('Error: Serial port not open')
-        data = self.read(2)
-        self.stopCS() # End Critical Section
-        data = data.encode("HEX")
-        servo_data = int(data[0:4], 16)
-        print servo_data
     
     def move(self, speed, direction):
         """Translates speed and direction into commands the proteus understands and sends them"""
@@ -452,14 +431,10 @@ class Proteus(object):
         if self.serial.isOpen():
             self.write(cmd)
 
-    def readSerial(self, serial):
-        """Read's all com activity
-        Indicated by LED_ORANGE1"""
-        self.led(6)
-        while self.running:
-            temp = self.readline()
-            if temp != "":
-                print temp
-                self.led(6)
-        self.led(-6)
+    def clearBuffer(self):
+        temp = self.serial.inWaiting()
+        if temp:
+            a = self.read(temp)
+            print a
+
 
