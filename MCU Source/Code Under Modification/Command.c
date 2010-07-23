@@ -116,7 +116,7 @@ void InterfaceFG(void) {
   short s_16;
   unsigned char u_8;
   char s_8;
-  unsigned char i;
+  unsigned short i;
   //extern unsigned short SRF08_FL_cm, SRF08_FC_cm, SRF08_FR_cm, SRF08_RL_cm, SRF08_RC_cm, SRF08_RR_cm; //for sonar
   extern unsigned char MotorStall;
   
@@ -148,8 +148,8 @@ void InterfaceFG(void) {
                 break;
         }
         i = 0;
-        while(i < 65535){
-        i++;
+        while (i < 65535){
+            i++;
         }
         SCI_OutString(SCI_X86, "AU-Proteus SCI: Baud Rate Changed Successfully");
         break;
