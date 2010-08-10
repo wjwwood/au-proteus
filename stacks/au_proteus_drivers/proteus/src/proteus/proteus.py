@@ -198,7 +198,7 @@ class Proteus(object):
                 self.readOdom()
                 time.sleep(wait)
                 
-        self.move(0,0)
+        self.move(0,0) # Return to default state
         
         
     def pollOdom(self):
@@ -208,45 +208,7 @@ class Proteus(object):
             steering angle - is in radians
             motor stall - is True, False, or None if no data is available
         """
-        if not self.started:
-            print "Start the Proteus and try again."
-            return
-        else:
-            self.odom_timer = Timer(self.odom_poll_rate, self.pollOdom) # Kick off the next timer
-            self.odom_timer.start()
-        odom_data = [0,0,None]
-        data = None
-        try:
-            # Request for the IR data
-            self.write(CMD_START+OP_SENSOR+SENSOR_ODOM+CMD_STOP)
-            # Wait for the proper response
-            data = self.read(5)
-            # Parse the data
-            if data != None and len(data) == 5:
-                # Encode the data as HEX for processing
-                data = data.encode("HEX")
-                # Extract the Tach
-                odom_data[0] = (int(data[0:4], 16)) * 0.0012833
-                temp = (int(data[4:8], 16)) * 0.0001
-                temp = temp / 3.14159
-                temp *= 180.0
-                if temp > 180.0:
-                    temp = temp - 375.0
-                odom_data[1] = temp * 1.5
-                temp = (int(data[8:10], 16))
-                if temp != None:
-                    if temp > 0:
-                        odom_data[2] = True
-                    elif temp == 0:
-                        odom_data[2] = False
-                else:
-                    odom_data[2] = None
-        except Exception as err:
-            logError(sys.exc_info(), logerr, "Exception while polling Odometry:")
-        finally:
-            # Pass the data along to the handler
-            if self.onOdomData:
-                self.onOdomData(odom_data)
+        # TODO - write this using the readOdom() function
                 
     def readOdom(self):
         """ Reads the IR data once
@@ -281,7 +243,7 @@ class Proteus(object):
                 temp *= 180.0
                 if temp > 180.0:
                     temp = temp - 375.0
-                odom_data[1] = temp * 1.4
+                odom_data[1] = temp * 1.46
                 temp = (int(data[8:10], 16))
                 if temp != None:
                     if temp > 0:
