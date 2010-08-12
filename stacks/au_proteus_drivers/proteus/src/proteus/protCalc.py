@@ -1,8 +1,20 @@
 """
 protCalc.py - Contains a few useful things for calculations with proteus.
 
-Created by Justin Paladino on 2010-08-10
-"""
+Created by Justin Paladino on  August 10, 2010
+        
+          /^\             /^^^^^^^\   /^^^^^^^\         /^^^^^^^^^^^^^^^^^^^\                    _________
+  |^^^^| /   \ |^^^^|     |   ___  \  |   ___  \        \_______     _______/                   /  _______)
+   |  | / /^\ \ |  |      |  /   \  \ |  /   \  \               |   |                          (  (      
+   |  |/  ^^^  \|  |      |  \___/  / |  \___/  /     ______    |   |     ______    ___   ___   \  \_____
+   |  /  /^^^\  \  |      |   _____/  |      __/     /      \   |   |    /  __  \  |   | |   |   \_____  \
+   | /  /     \  \ |      |  |        |  |\  \      /   __   \  |   |   /  (__)  \ |   | |   |         \  \
+  |^^  ^|     |^  ^^|     |  |        |  | \  \    (   (__)   ) |   |  (   ______| |   | |   |          )  )
+   ^^\^^\_____/^^/^^      |  |        |  |  \  \    \        /  |   |   \  \_____  |   |_|   |  _______/  /
+      \_________/         |__|        |__|   \__\    \______/   |___|    \______/   \_______/  (_________/
+  """
+  
+  
 __author__ = "Justin Paladino" 
 
 ###  Imports  ###
@@ -21,7 +33,9 @@ def turningRadius(d, l, theta):
         
         Assumes Ackerman (Car-Like) steering
         
-        Returns the turning radius in the units used for d and l """
+        For a Proteus Robot, 'l' is about 11 inches, and 'd' is about 9 inches
+        
+        Returns the turning radius in the units used for 'd' and 'l' """
     
     if theta != 0:
         r = (d/2) + (l / math.sin(math.radians(theta)))

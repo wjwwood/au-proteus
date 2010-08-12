@@ -10,6 +10,16 @@
   SCI_Proteus.h takes care of low level protocol handling, using the {begin char} and {end char} to capture command packets
   These packets are turned over to Command.c and look like {opcode} {data 1} ... {data N}
   Command.c processes these commands
+  
+          /^\             /^^^^^^^\   /^^^^^^^\         /^^^^^^^^^^^^^^^^^^^\                    _________
+  |^^^^| /   \ |^^^^|     |   ___  \  |   ___  \        \_______     _______/                   /  _______)
+   |  | / /^\ \ |  |      |  /   \  \ |  /   \  \               |   |                          (  (      
+   |  |/  ^^^  \|  |      |  \___/  / |  \___/  /     ______    |   |     ______    ___   ___   \  \_____
+   |  /  /^^^\  \  |      |   _____/  |      __/     /      \   |   |    /  __  \  |   | |   |   \_____  \
+   | /  /     \  \ |      |  |        |  |\  \      /   __   \  |   |   /  (__)  \ |   | |   |         \  \
+  |^^  ^|     |^  ^^|     |  |        |  | \  \    (   (__)   ) |   |  (   ______| |   | |   |          )  )
+   ^^\^^\_____/^^/^^      |  |        |  |  \  \    \        /  |   |   \  \_____  |   |_|   |  _______/  /
+      \_________/         |__|        |__|   \__\    \______/   |___|    \______/   \_______/  (_________/
   */
 
 #include <mc9s12dp512.h>     /* derivative information */
