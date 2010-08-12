@@ -146,20 +146,20 @@ class Proteus(object):
         
         self.serial.baudrate = baud
     
-    def mainLoop(self):
-        """ A polling loop for the whole system, including odometry processing,
-            sensor information and decisions, and movement
-        """
+    # def mainLoop(self):
+        # """ A polling loop for the whole system, including odometry processing,
+            # sensor information and decisions, and movement
+        # """
         
-        if not self.started:
-            print "Start the Proteus and try again."
-            return
-        else:
-            self.loop_timer = Timer(self.loop_poll_rate, self.mainLoop) # Kick off the next timer
-            self.loop_timer.start()
+        # if not self.started:
+            # print "Start the Proteus and try again."
+            # return
+        # else:
+            # self.loop_timer = Timer(self.loop_poll_rate, self.mainLoop) # Kick off the next timer
+            # self.loop_timer.start()
             
-        # Read IR, Compass, 
-        self.write
+        # #Read IR, Compass, 
+        # self.write
         
     def pollIRSensors(self):
         """Polls the IR Sensors on a regular period
