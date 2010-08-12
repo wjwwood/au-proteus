@@ -517,24 +517,6 @@ void InterfaceFG(void) {
             }
             
             break;    */
-          
-          case PROTEUS_SERVO_PACKET:
-            u_16 = readServoPot(); 
-            outToSerial[i++] = u_16 >> 8;
-            outToSerial[i++] = u_16 & 0x00FF;
-            
-            for(i=0; i<PROTEUS_SERVO_PACKET_SIZE; i++){
-              SCI_OutChar(SCI_X86, outToSerial[i]);  
-            }
-            
-            break;
-          
-          default: 
-            (unsigned char) Scheduler_RemoveEvent(errorSub);
-            errorSub = Scheduler_AddEvent_hz(&blinkSubErrLED,1);
-            LED_RED2 = 1; 
-            es = 1;
-            break; //sensor command not recognized
         }//end sensor command
         break;    
       default: 

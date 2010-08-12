@@ -27,6 +27,7 @@ import sys
 import math
 import thread
 import time
+import protCalc
 from threading import Lock, Timer
 
 # pySerial
@@ -79,11 +80,12 @@ def logerr(msg):
 ###  Classes  ###
 class Proteus(object):
     """This class allows you to control a Proteus robot"""
-    def __init__(self, serial_port=None, ir_poll_rate=10, odom_poll_rate=10):
+    def __init__(self, serial_port=None, ir_poll_rate=10, loop_poll_rate=60, odom_poll_rate=10):
         """Constructor"""
         # Use the passed parameters or the defaults
         self.serial_port = serial_port or "/dev/ttyS0"
         self.ir_poll_rate = 1.0/ir_poll_rate # Convert Hz to period
+        self.loop_poll_rate = 1.0/loop_poll_rate # Convert Hz to period
         self.odom_poll_rate = 1.0/odom_poll_rate # Convert Hz to period
         # Create and setup the serial port
         self.serial = Serial()
@@ -103,6 +105,7 @@ class Proteus(object):
         
         self.onIRSensorData = None
         self.ir_timer = None
+        self.loop_timer = None
         
         
     def close(self):
@@ -142,8 +145,22 @@ class Proteus(object):
             logerr('Error: Serial port not open')
         
         self.serial.baudrate = baud
-        
     
+    def mainLoop(self):
+        """ A polling loop for the whole system, including odometry processing,
+            sensor information and decisions, and movement
+        """
+        
+        if not self.started:
+            print "Start the Proteus and try again."
+            return
+        else:
+            self.loop_timer = Timer(self.loop_poll_rate, self.mainLoop) # Kick off the next timer
+            self.loop_timer.start()
+            
+        # Read IR, Compass, 
+        self.write
+        
     def pollIRSensors(self):
         """Polls the IR Sensors on a regular period
             returns a list of six IR readings in milimeters
