@@ -58,7 +58,6 @@ BAUD38400       = 0x01 # b00000001
 # Sensor Codes
 SENSOR_ODOM     = '\x01' # b00000001
 SENSOR_IR       = '\x02' # b00000010
-SENSOR_SERVO    = '\x06' # b00000110
 SENSOR_COMPASS  = '\x04' # b00000100
 
 # Pre Assembled Commands
@@ -146,24 +145,36 @@ class Proteus(object):
         
         self.serial.baudrate = baud
     
-    # def mainLoop(self):
-        # """ A polling loop for the whole system, including odometry processing,
-            # sensor information and decisions, and movement
-        # """
+    def mainLoop(self):
+        """ A polling loop for the whole system, including odometry processing,
+            sensor information and decisions, and movement
+        """
         
-        # if not self.started:
-            # print "Start the Proteus and try again."
-            # return
-        # else:
-            # self.loop_timer = Timer(self.loop_poll_rate, self.mainLoop) # Kick off the next timer
-            # self.loop_timer.start()
+        if not self.started:
+            print "Start the Proteus and try again."
+            return
+        else:
+            self.loop_timer = Timer(self.loop_poll_rate, self.mainLoop) # Kick off the next timer
+            self.loop_timer.start()
             
-        # #Read IR, Compass, 
-        # self.write
+        # Read IR, Compass, Odometry
+        ir_data = readIR()
+        
+        compass_data = readCompass()
+        
+        odom_data = readOdom(False)
+        # newPos is the cartesian coordinates of the robot's position 
+        # relative to where it was the last time the odometry was read
+        # with the y-axis set to the heading of the robot and the x-axis
+        # set to be centered at the middle of the robot's wheelbase
+        newPos = protCalc.odomToCoord(odom_data[0], protCalc.turningRadius(9, 11, odom_data[1]))
+        
+        
+        
         
     def pollIRSensors(self):
         """Polls the IR Sensors on a regular period
-            returns a list of six IR readings in milimeters
+            returns a list of six IR readings in millimeters
         """
         if not self.started:
             print "Start the Proteus and try again."
@@ -193,6 +204,27 @@ class Proteus(object):
             if self.onIRSensorData:
                 self.onIRSensorData(ir_data)
                 
+    def readIR(self):
+        if not self.started:
+            print "Start the Proteus and try again."
+            return
+        ir_data = [0,0,0,0,0,0]
+        data = None
+        try:          
+            # Request for the IR data
+            self.write(CMD_START+OP_SENSOR+SENSOR_IR+CMD_STOP)
+            # Wait for the proper response
+            data = self.read(12)
+            # Parse the data
+            if data != None and len(data) == 12:
+                # Encode the data as HEX for processing
+                data = data.encode("HEX")
+                for ir in range(0,6):
+                    ir_data[ir] = int(data[(ir*4):((ir+1)*4)], 16)
+                # Here is where you can convert the data back to ADC and then into other IR sensor specific distances
+                pass
+            return ir_data
+        
     def testTurning(self, low, high, interval, wait):
         """ Takes the lower and higher limits for a test of servo range
             in the form of: testTurning(x, y, i, d)
@@ -237,7 +269,7 @@ class Proteus(object):
         """
         # TODO - write this using the readOdom() function
                 
-    def readOdom(self):
+    def readOdom(self, pr=True):
         """ Reads the IR data once
             returns - [tach, steering angle, motor stall]
             tach - is in meters
@@ -279,10 +311,32 @@ class Proteus(object):
                         odom_data[2] = False
                 else:
                     odom_data[2] = None
-            print "ODOM: " + repr(odom_data)
+            return odom_data
+            if pr: print "ODOM: " + repr(odom_data)
         else:
             logerr('Error: Serial port not open')
     
+    
+    def readCompass(self):
+        if not self.started:
+            print "Start the Proteus and try again."
+            return
+        elif self.serial.isOpen():
+            compass_data = None
+            data = None
+            self.write(CMD_START+OP_SENSOR+SENSOR_COMPASS+CMD_STOP)
+            data = self.read(2)
+            
+            # Parse the data
+            if data != None and len(data) == 2:
+                # Encode the data as HEX for processing
+                data = data.encode("HEX")
+                # Extract the Tach
+                temp = data
+                # TODO - figure out how to convert the compass data into something useful
+                compass_data = temp
+            return compass_data    
+        
         
     def start(self):
         """Sets the proteus in the start mode, starts polling sensors"""
