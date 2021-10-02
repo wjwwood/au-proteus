@@ -1,5 +1,0 @@
-<launch>
-    <node pkg="stage" type="stageros" name="stageros" output="screen" args="$(find proteus_stage)/worlds/uav_simulation.world" >
-        <param name="base_watchdog_timeout" value="0.2"/>
-    </node>
-</launch>
